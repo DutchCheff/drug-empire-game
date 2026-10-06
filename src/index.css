@@ -1,0 +1,22 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Bricolage Grotesque", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+
+  --color-ground: #1b1916;
+  --color-panel: #25221e;
+  --color-edge: #36312b;
+  --color-paper: #ece6da;
+  --color-muted: #a59d90;
+  --color-leaf: #8ccb5e;
+  --color-gold: #e9b949;
+  --color-ink: #14210e;
+  --color-floor: #6e685f;
+}
+
+@layer base {
+  body {
+    @apply bg-ground font-sans text-paper;
+  }
+}
