@@ -13,6 +13,66 @@
   --color-gold: #e9b949;
   --color-ink: #14210e;
   --color-floor: #6e685f;
+
+
+  --animate-sway: sway 5s ease-in-out infinite;
+  --animate-sparkle: sparkle 2.4s ease-in-out infinite;
+  --animate-leaf-pop: leaf-pop 0.9s ease-out forwards;
+  --animate-float-up: float-up 1.2s ease-out forwards;
+
+  @keyframes leaf-pop {
+    0% {
+      opacity: 1;
+      transform: translate(0, 0) rotate(0deg);
+    }
+    60% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+      transform: translate(var(--pop-x), var(--pop-y)) rotate(var(--pop-spin));
+    }
+  }
+
+  @keyframes float-up {
+    0% {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    20% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+      transform: translateY(-26px);
+    }
+  }
+
+  @keyframes sway {
+
+    0%,
+    100% {
+      transform: rotate(-2.5deg);
+    }
+
+    50% {
+      transform: rotate(2.5deg);
+    }
+  }
+
+  @keyframes sparkle {
+
+    0%,
+    100% {
+      opacity: 0;
+      transform: scale(0.3);
+    }
+
+    50% {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
 }
 
 @layer base {

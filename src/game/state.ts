@@ -1,4 +1,5 @@
 import { CONFIG } from "./config";
+import { nextPotCost } from "./costs";
 import { getStage } from "./plants";
 import type { GameState, Pot } from "./types";
 
@@ -7,6 +8,7 @@ export type GameAction =
     | { type: 'harvest'; potId: number; now: number }
     | { type: 'sell'; grams: number }
     | { type: 'clickPot'; potId: number; now: number }
+    | { type: 'buyPot' }
 
 export function createInitialState(now: number): GameState {
     const pots: Pot[] = []
@@ -35,6 +37,9 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         }
         case 'clickPot': {
             return clickPot(state, action.potId, action.now)
+        }
+        case 'buyPot': {
+            return buyPot(state)
         }
     }
 }
@@ -100,4 +105,20 @@ function setPlantedAt(pots: Pot[], potId: number, plantedAt: number | null): Pot
         }
         return { ...item, plantedAt}
     })
+}
+
+function buyPot(state: GameState): GameState {
+    if (state.pots.length >= CONFIG.maxPots) {
+        return state
+    }
+    const cost = nextPotCost(state.pots.length)
+    if (state.cash < cost) {
+        return state
+    }
+    const newPot: Pot = { id: state.pots.length + 1, plantedAt: null }
+    return {
+        ...state,
+        cash: state.cash - cost,
+        pots: [...state.pots, newPot],
+    }
 }
