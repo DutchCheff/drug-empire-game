@@ -24,7 +24,9 @@ export type TripOutcome = 'sold' | 'robbed' | 'arrested'
 
 export type TripResult = {
     outcome: TripOutcome
+    grams: number
     cash: number
+    at: number
 }
 
 export type DealerCandidate = {

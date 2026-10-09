@@ -61,15 +61,15 @@ export function getJailSecondsLeft(dealer: Dealer, now: number) {
     return  Math.max(0, Math.ceil((dealer.statusSince + JAIL_MS - now) / 1000))
 }
 
-function rollTrip(dealer: Dealer, roll: Roll): TripResult {
+function rollTrip(dealer: Dealer, roll: Roll, at: number): TripResult {
     if (roll() < dealer.stats.arrestChance) {
-        return { outcome: 'arrested', cash: 0 }
+        return { outcome: 'arrested', grams: dealer.carrying, cash: 0, at }
     }
     if (roll() < dealer.stats.robberyChance) {
-        return { outcome: 'robbed', cash: 0 }
+        return { outcome: 'robbed', grams: dealer.carrying, cash: 0, at }
     }
     const cash = Math.round(dealer.carrying * CONFIG.pricePerGram * (1 - dealer.stats.cut))
-    return { outcome: 'sold', cash }
+    return { outcome: 'sold', grams: dealer.carrying, cash, at }
 }
 
 export function updateDealers(state: GameState, now: number, roll: Roll): GameState {
@@ -81,7 +81,7 @@ export function updateDealers(state: GameState, now: number, roll: Roll): GameSt
         if (current.status === 'out' && current.statusSince !== null) {
             const backAt = current.statusSince + TRIP_MS
             if (now >= backAt) {
-                const trip = rollTrip(current, roll)
+                const trip = rollTrip(current, roll, backAt)
                 const arrested = trip.outcome === 'arrested'
                 cash += trip.cash
                 current = {

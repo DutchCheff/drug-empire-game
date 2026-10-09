@@ -2,7 +2,7 @@ import { CONFIG } from "./config";
 import { makeRoller } from '../lib/random'
 import { hireCost, nextPotCost } from './costs'
 import { createDealer, rollCandidates, updateDealers } from './dealers'
-import { getStage } from "./plants";
+import { getStage, GROW_SECONDS } from "./plants";
 import type { Dealer, GameState, Pot } from "./types";
 
 export type GameAction =
@@ -14,6 +14,8 @@ export type GameAction =
     | { type: 'hireDealer'; candidateIndex: number }
     | { type: 'sendDealer'; dealerId: number; grams: number; now: number }
     | { type: 'tick'; now: number }
+    | { type: 'devSet'; cash: number; grams: number }
+    | { type: 'devRipenPots'; now: number }
 
 export function createInitialState(now: number): GameState {
     const pots: Pot[] = []
@@ -57,6 +59,15 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         }
         case 'tick': {
             return tick(state, action.now)
+        }
+        case 'devSet': {
+            return { ...state, cash: Math.max(0, action.cash), grams: Math.max(0, Math.floor(action.grams)) }
+        }
+        case 'devRipenPots': {
+            return {
+                ...state,
+                pots: state.pots.map((pot) => ({ ...pot, plantedAt: action.now - GROW_SECONDS * 1000 })),
+            }
         }
     }
 }

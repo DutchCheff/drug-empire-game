@@ -45,7 +45,7 @@ export function dealerPlacement(dealer: Dealer, spot: Point, now: number): Place
         return null
     }
     if (dealer.status === 'idle') {
-        return { point: spot, angle: -90, walking: false }
+        return { point: spot, angle: 0, walking: false }
     }
     const progress = getTripProgress(dealer, now)
     const path = [spot, DOOR_INSIDE, DOOR_OUTSIDE]

@@ -85,6 +85,8 @@ Flat SVG drawn in code: plants (one shape per stage), dealers,
 pots, stash and door. No image assets.
 
 ### Offline progress
-Yes, capped at 2 hours. On load, plants catch up from their
-timestamps and dealer trips are simulated for the time away.
-Show a "while you were away" summary.
+On load, plants catch up from their timestamps and dealer trips that
+ended while you were away are resolved. After 60 s or more away, a
+"While you were away" summary shows the trip results, cash earned and
+plants ready. No time cap for now: nothing piles up offline yet
+(dealers don't leave on their own). Add a cap when automation arrives.

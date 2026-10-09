@@ -25,5 +25,5 @@ export const CONFIG = {
     baseCost: 25,
     costGrowth: 1.4,
   },
-  offlineCapHours: 2,
+  awaySummarySeconds: 60,
 } as const

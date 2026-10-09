@@ -1,7 +1,8 @@
 import type { CSSProperties } from "react";
 import { LockedSlot } from "../art/room/LockedSlot";
 import { RoomBackground } from "../art/room/RoomBackground";
-import { POT_SLOTS, ROOM_HEIGHT, ROOM_WIDTH, SLOT_SIZE, WAIT_SPOTS } from '../art/room/roomLayout'
+import { StashTable } from "../art/room/StashTable";
+import { POT_SLOTS, ROOM_HEIGHT, ROOM_WIDTH, SLOT_SIZE, WAIT_SPOTS, STASH } from '../art/room/roomLayout'
 import type { Dealer, Pot } from '../game/types'
 import { RoomDealer } from "./RoomDealer";
 import { PotButton } from "./PotButton";
@@ -64,6 +65,11 @@ export function Room(props: RoomProps) {
     return (
         <div className="relative aspect-2/1 w-full max-w-300 overflow-hidden rounded-xl">
             <RoomBackground />
+            <svg viewBox={`0 0 ${ROOM_WIDTH} ${ROOM_HEIGHT}`} className="pointer-events-none absolute inset-0 h-full w-full" aria-hidden="true">
+                <g transform={`translate(${STASH.x} ${STASH.y}) scale(1.3)`}>
+                    <StashTable grams={props.stash} />
+                </g>
+            </svg>
             {props.pots.map((pot, index) => (
                 <div key={pot.id} className="absolute" style={slotStyle(index)}>
                     <PotButton
