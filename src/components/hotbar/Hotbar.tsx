@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { CONFIG } from '../../game/config'
 import { hireCost } from '../../game/costs'
 import type { Dealer, DealerCandidate } from '../../game/types'
 import { DealerTile } from './DealerTile'
@@ -19,6 +20,7 @@ export function Hotbar(props: HotbarProps) {
     const [selected, setSelected] = useState<number | 'hire' | null>(null)
     const selectedDealer = props.dealers.find((dealer) => dealer.id === selected)
     const cheapestHire = Math.min(...props.candidates.map((candidate) => hireCost(candidate, props.dealers.length)))
+    const crewFull = props.dealers.length >= CONFIG.dealer.maxDealers
 
     function toggle(next: number | 'hire') {
         setSelected(selected === next ? null : next)
@@ -64,16 +66,23 @@ export function Hotbar(props: HotbarProps) {
                 <div className="flex w-24 flex-col items-center gap-1">
                     <button
                         type="button"
+                        disabled={crewFull}
                         onClick={() => toggle('hire')}
-                        aria-label={`Hire a dealer, from $${cheapestHire}`}
-                        className={`flex size-19 cursor-pointer items-center justify-center rounded-xl border-2 border-dashed border-muted/60 text-3xl hover:bg-white/5 ${selected === 'hire' ? 'ring-2 ring-paper' : ''}`}
+                        aria-label={crewFull ? 'Crew is full' : `Hire a dealer, from $${cheapestHire}`}
+                        className={`flex size-19 cursor-pointer items-center justify-center rounded-xl border-2 border-dashed border-muted/60 text-3xl enabled:hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-40 ${selected === 'hire' ? 'ring-2 ring-paper' : ''}`}
                     >
                         +
                     </button>
                     <span className="text-sm font-semibold">Hire</span>
-                    <span className={`font-mono text-xs ${props.cash >= cheapestHire ? 'text-gold' : 'text-muted'}`}>
-                        from ${cheapestHire}
-                    </span>
+                    {crewFull ? (
+                        <span className="font-mono text-xs text-muted">
+                            {props.dealers.length}/{CONFIG.dealer.maxDealers} full
+                        </span>
+                    ) : (
+                        <span className={`font-mono text-xs ${props.cash >= cheapestHire ? 'text-gold' : 'text-muted'}`}>
+                            from ${cheapestHire}
+                        </span>
+                    )}
                 </div>
             </footer>
         </section>

@@ -41,7 +41,7 @@ function App() {
   const potCost = nextPotCost(state.pots.length)
   const potsFull = state.pots.length >= CONFIG.maxPots
   const canBuyPot = !potsFull && state.cash >= potCost
-  const canPlant = state.cash >= CONFIG.seedCost
+  const canPlant = state.seedStock > 0
 
   return (
 
@@ -50,6 +50,8 @@ function App() {
         cash={state.cash}
         grams={state.grams}
         onSell={() => dispatch({ type: 'sell', grams: 1 })}
+        seedStock={state.seedStock}
+        onBuySeeds={(offerIndex) => dispatch({ type: 'buySeeds', offerIndex})}
       />
 
       <Room

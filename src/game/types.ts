@@ -46,6 +46,7 @@ export type Dealer = DealerCandidate & {
 export type GameState = {
     cash: number
     grams: number
+    seedStock: number
     pots: Pot[]
     dealers: Dealer[]
     candidates: DealerCandidate[]

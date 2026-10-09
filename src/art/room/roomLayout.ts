@@ -5,15 +5,18 @@ export const FLOOR = { left: 232, top: 52, right: 968, bottom: 528 }
 
 // Center of each pot slot, in the order pots are bought.
 export const POT_SLOTS = [
-    { x: 340, y: 180 },
-    { x: 480, y: 180 },
-    { x: 340, y: 330 },
-    { x: 480, y: 330 },
-    { x: 620, y: 180 },
-    { x: 620, y: 330 },
+    { x: 330, y: 150 },
+    { x: 450, y: 150 },
+    { x: 330, y: 280 },
+    { x: 450, y: 280 },
+    { x: 570, y: 150 },
+    { x: 570, y: 280 },
+    { x: 330, y: 410 },
+    { x: 450, y: 410 },
+    { x: 570, y: 410 },
 ]
 
-export const SLOT_SIZE = 130
+export const SLOT_SIZE = 110
 
 
 export const WAIT_SPOTS = [

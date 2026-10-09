@@ -37,3 +37,22 @@ export function GramsIcon(props: IconProps) {
         </svg>
     )
 }
+
+
+export function SeedIcon(props: IconProps) {
+    return (
+        <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={1.8}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className={props.className}
+            aria-hidden="true"
+        >
+            <path d="M12 3 C17 7 17 15 12 21 C7 15 7 7 12 3 Z" />
+            <path d="M12 8 V16" />
+        </svg>
+    )
+}

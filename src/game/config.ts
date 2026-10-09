@@ -2,18 +2,24 @@
 export const CONFIG = {
   startCash: 20,
   startPots: 4,
-  maxPots: 6,
-  seedCost: 5,
+  maxPots: 9,
+  startSeeds: 4,
+  seedOffers: [
+    { amount: 1, price: 5 },
+    { amount: 10, price: 40 },
+    { amount: 100, price: 375 },
+  ],
   // seedling -> vegetative -> flowering
   stageSeconds: 10,
-  yieldGrams: 3,
+  yieldGrams: 5,
   pricePerGram: 4,
   dealer: {
     baseCost: 50,
-    costGrowth: 1.5,
+    costGrowth: 1.2,
     tripSeconds: 20,
     jailSeconds: 120,
     candidateCount: 3,
+    maxDealers: 6,
     hireCostMultiplier: [0.6, 1.8],
     capacity: [10, 25],
     //Share of the stree price the dealer keeps.

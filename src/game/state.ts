@@ -16,6 +16,7 @@ export type GameAction =
     | { type: 'tick'; now: number }
     | { type: 'devSet'; cash: number; grams: number }
     | { type: 'devRipenPots'; now: number }
+    | { type: 'buySeeds'; offerIndex: number }
 
 export function createInitialState(now: number): GameState {
     const pots: Pot[] = []
@@ -26,6 +27,7 @@ export function createInitialState(now: number): GameState {
     return {
         cash: CONFIG.startCash,
         grams: 0,
+        seedStock: CONFIG.startSeeds,
         pots,
         dealers: [],
         candidates: rollCandidates(roller.roll),
@@ -69,6 +71,9 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
                 pots: state.pots.map((pot) => ({ ...pot, plantedAt: action.now - GROW_SECONDS * 1000 })),
             }
         }
+        case "buySeeds": {
+            return buySeeds(state, action.offerIndex)
+        }
     }
 }
 
@@ -77,13 +82,13 @@ function plant(state: GameState, potId: number, now: number): GameState {
     if (pot === undefined || pot.plantedAt !== null) {
         return state
     }
-    if (state.cash < CONFIG.seedCost) {
+    if (state.seedStock < 1) {
         return state
     }
     return {
         ...state,
-        cash: state.cash - CONFIG.seedCost,
-        pots: setPlantedAt(state.pots, potId, now)
+        seedStock: state.seedStock - 1,
+        pots: setPlantedAt(state.pots, potId, now),
     }
 }
 
@@ -153,7 +158,7 @@ function buyPot(state: GameState): GameState {
 
 function hireDealer(state: GameState, candidateIndex: number): GameState {
     const candidate = state.candidates[candidateIndex]
-    if (candidate === undefined) {
+    if (candidate === undefined || state.dealers.length >= CONFIG.dealer.maxDealers) {
         return state
     }
     const cost = hireCost(candidate, state.dealers.length)
@@ -198,4 +203,12 @@ function tick(state: GameState, now: number): GameState {
         return state
     }
     return { ...updated, seed: roller.nextSeed() }
+}
+
+function buySeeds(state: GameState, offerIndex: number):GameState {
+    const offer = CONFIG.seedOffers[offerIndex]
+    if (offer === undefined || state.cash < offer.price) {
+        return state
+    }
+    return { ...state, cash: state.cash - offer.price, seedStock: state.seedStock + offer.amount}
 }
