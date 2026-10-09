@@ -1,7 +1,7 @@
-import type { BudColors } from "./colors";
-import { polar } from "./geometry";
+import type { BudColors } from "../colors";
+import { polar } from "../geometry";
 import { FanLeaf } from "./Leaf";
-import { seededRandom } from "./random";
+import { seededRandom } from "../../lib/random";
 
 type BudProps = {
     x: number

@@ -14,3 +14,16 @@ export const POT_SLOTS = [
 ]
 
 export const SLOT_SIZE = 130
+
+
+export const WAIT_SPOTS = [
+    { x: 870, y: 170 },
+    { x: 930, y: 170 },
+    { x: 870, y: 250 },
+    { x: 930, y: 250 },
+    { x: 870, y: 330 },
+    { x: 930, y: 330 },
+]
+
+export const DOOR_INSIDE = { x: 800, y: 480 }
+export const DOOR_OUTSIDE = { x: 800, y: 650 }

@@ -1,7 +1,7 @@
-import type { PlantStage } from '../game/types'
+import type { PlantStage } from '../../game/types'
 import { Bud } from './Bud'
-import { BUDS, PLANT } from './colors'
-import { polar } from './geometry'
+import { BUDS, PLANT } from '../colors'
+import { polar } from '../geometry'
 import { FanLeaf, LeafRing } from './Leaf'
 import { Sparkle } from './Sparkle'
 

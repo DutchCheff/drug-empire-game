@@ -1,9 +1,9 @@
 import type { CSSProperties } from "react";
-import { CONFIG } from "../game/config";
-import { PLANT } from "./colors";
-import { polar } from "./geometry";
+import { CONFIG } from "../../game/config";
+import { PLANT } from "../colors";
+import { polar } from "../geometry";
 import { FanLeaf } from "./Leaf";
-import { seededRandom } from "./random";
+import { seededRandom } from "../../lib/random";
 
 type LeafBit = {
     start: { x: number; y: number };

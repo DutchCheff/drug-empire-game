@@ -22,7 +22,6 @@ type HudProps = {
     cash: number
     grams: number
     onSell: () => void
-    onSellAll: () => void
 }
 
 export function Hud(props: HudProps) {
@@ -39,14 +38,6 @@ export function Hud(props: HudProps) {
             <div className="flex flex-wrap items-center gap-3">
                 <button type="button" disabled={!canSell} onClick={props.onSell} className={`${buttonClass} bg-leaf text-ink`}>
                     Sell 1 g · ${CONFIG.pricePerGram}
-                </button>
-                <button
-                    type="button"
-                    disabled={!canSell}
-                    onClick={props.onSellAll}
-                    className={`${buttonClass} border border-edge bg-ground text-paper`}
-                >
-                    Sell all · ${props.grams * CONFIG.pricePerGram}
                 </button>
             </div>
         </header>

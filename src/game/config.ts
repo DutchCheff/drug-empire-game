@@ -11,8 +11,15 @@ export const CONFIG = {
   dealer: {
     baseCost: 50,
     costGrowth: 1.5,
-    carryGrams: 5,
     tripSeconds: 20,
+    jailSeconds: 120,
+    candidateCount: 3,
+    hireCostMultiplier: [0.6, 1.8],
+    capacity: [10, 25],
+    //Share of the stree price the dealer keeps.
+    cut: [0.15, 0.4],
+    robberyChance: [0.02, 0.1],
+    arrestChance: [0.01, 0.05],
   },
   pot: {
     baseCost: 25,

@@ -1,8 +1,8 @@
 import { useState } from 'react'
-import { GrowthRing, ReadyRing } from '../art/GrowthRing'
-import { HarvestPop } from '../art/HarvestPop'
-import { Plant } from '../art/Plant'
-import { TerracottaPot } from '../art/Pot'
+import { GrowthRing, ReadyRing } from '../art/plants/GrowthRing'
+import { HarvestPop } from '../art/plants/HarvestPop'
+import { Plant } from '../art/plants/Plant'
+import { TerracottaPot } from '../art/plants/Pot'
 import { getProgress, getStage } from '../game/plants'
 import type { PlantStage, Pot } from '../game/types'
 
@@ -42,7 +42,7 @@ export function PotButton(props: PotButtonProps) {
             aria-label={`Pot ${props.pot.id}: ${stage}`}
             className={`h-full w-full rounded-full ${clickable ? 'cursor-pointer hover:bg-white/5' : 'cursor-default'}`}
         >
-                <svg viewBox="-56 -56 112 112" className="h-full w-full overflow-visible">
+            <svg viewBox="-56 -56 112 112" className="h-full w-full overflow-visible">
                 <TerracottaPot />
                 <Plant stage={stage} />
                 {growing && <GrowthRing progress={progress} color={RING_COLORS[stage]} />}

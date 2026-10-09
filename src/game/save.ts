@@ -1,16 +1,19 @@
 import type { GameState } from "./types";
+import { createInitialState } from "./state";
 
 const SAVE_KEY = 'drug-empire-save'
 
-export function loadGame(): GameState | null {
+export function loadGame(now: number): GameState {
+    const fresh = createInitialState(now)
     try {
         const saved = localStorage.getItem(SAVE_KEY)
         if (saved === null) {
-            return null
+            return fresh
         }
-        return JSON.parse(saved) as GameState
+        // Fields added in newer versions of the game get their starting value.
+        return { ...fresh, ...JSON.parse(saved) }
     } catch {
-        return null
+        return fresh
     }
 }
 

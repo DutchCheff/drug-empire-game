@@ -1,7 +1,9 @@
 import { CONFIG } from "./config";
-import { nextPotCost } from "./costs";
+import { makeRoller } from '../lib/random'
+import { hireCost, nextPotCost } from './costs'
+import { createDealer, rollCandidates, updateDealers } from './dealers'
 import { getStage } from "./plants";
-import type { GameState, Pot } from "./types";
+import type { Dealer, GameState, Pot } from "./types";
 
 export type GameAction =
     | { type: 'plant'; potId: number; now: number }
@@ -9,17 +11,23 @@ export type GameAction =
     | { type: 'sell'; grams: number }
     | { type: 'clickPot'; potId: number; now: number }
     | { type: 'buyPot' }
+    | { type: 'hireDealer'; candidateIndex: number }
+    | { type: 'sendDealer'; dealerId: number; grams: number; now: number }
+    | { type: 'tick'; now: number }
 
 export function createInitialState(now: number): GameState {
     const pots: Pot[] = []
     for (let index = 0; index < CONFIG.startPots; index++) {
         pots.push({ id: index + 1, plantedAt: null })
     }
+    const roller = makeRoller(now)
     return {
         cash: CONFIG.startCash,
         grams: 0,
         pots,
         dealers: [],
+        candidates: rollCandidates(roller.roll),
+        seed: roller.nextSeed(),
         savedAt: now,
     }
 }
@@ -40,6 +48,15 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         }
         case 'buyPot': {
             return buyPot(state)
+        }
+        case 'hireDealer': {
+            return hireDealer(state, action.candidateIndex)
+        }
+        case 'sendDealer': {
+            return sendDealer(state, action.dealerId, action.grams, action.now)
+        }
+        case 'tick': {
+            return tick(state, action.now)
         }
     }
 }
@@ -121,4 +138,53 @@ function buyPot(state: GameState): GameState {
         cash: state.cash - cost,
         pots: [...state.pots, newPot],
     }
+}
+
+function hireDealer(state: GameState, candidateIndex: number): GameState {
+    const candidate = state.candidates[candidateIndex]
+    if (candidate === undefined) {
+        return state
+    }
+    const cost = hireCost(candidate, state.dealers.length)
+    if (state.cash < cost) {
+        return state
+    }
+    const roller = makeRoller(state.seed)
+    return {
+        ...state,
+        cash: state.cash - cost,
+        dealers: [...state.dealers, createDealer(state.dealers.length + 1, candidate)],
+        candidates: rollCandidates(roller.roll),
+        seed: roller.nextSeed(),
+    }
+}
+
+function sendDealer(state: GameState, dealerId: number, grams: number, now: number): GameState {
+    const dealer = state.dealers.find((item) => item.id === dealerId)
+    if (dealer === undefined || dealer.status !== 'idle') {
+        return state
+    }
+    const amount = Math.min(Math.floor(grams), dealer.stats.capacity, state.grams)
+    if (amount < 1) {
+        return state
+    }
+    return {
+        ...state,
+        grams: state.grams - amount,
+        dealers: state.dealers.map((item): Dealer => {
+            if (item.id !== dealerId) {
+                return item
+            }
+            return { ...item, status: 'out', statusSince: now, carrying: amount }
+        }),
+    }
+}
+
+function tick(state: GameState, now: number): GameState {
+    const roller = makeRoller(state.seed)
+    const updated = updateDealers(state, now, roller.roll)
+    if (updated === state) {
+        return state
+    }
+    return { ...updated, seed: roller.nextSeed() }
 }

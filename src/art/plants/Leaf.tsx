@@ -1,6 +1,6 @@
-import { PLANT } from "./colors";
-import { polar } from "./geometry";
-import { seededRandom } from "./random";
+import { PLANT } from "../colors";
+import { polar } from "../geometry";
+import { seededRandom } from "../../lib/random";
 
 export type LeafletCount = 1 | 3 | 5 | 7
 
@@ -16,7 +16,7 @@ function leafletPath(length: number, width: number) {
         right.push({ x, y })
     }
     const left = right.map((point) => ({ x: -point.x, y: point.y })).reverse()
-    const points = [{ x: 0, y: 0}, ...right, { x: 0, y: -length }, ...left]
+    const points = [{ x: 0, y: 0 }, ...right, { x: 0, y: -length }, ...left]
     return 'M' + points.map((point) => `${point.x} ${point.y}`).join(' L') + ' Z'
 }
 
@@ -71,7 +71,7 @@ type LeafRingProps = {
     distance: number
     length: number
     leaflets: LeafletCount
-    fills: string []
+    fills: string[]
     jitter: number
     seed: number
 }

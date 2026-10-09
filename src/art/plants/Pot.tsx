@@ -1,5 +1,5 @@
-import { arcPath, polar } from "./geometry";
-import { seededRandom } from "./random";
+import { arcPath, polar } from "../geometry";
+import { seededRandom } from "../../lib/random";
 
 const COLORS = {
     rim: '#C2643A',

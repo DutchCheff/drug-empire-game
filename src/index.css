@@ -19,15 +19,39 @@
   --animate-sparkle: sparkle 2.4s ease-in-out infinite;
   --animate-leaf-pop: leaf-pop 0.9s ease-out forwards;
   --animate-float-up: float-up 1.2s ease-out forwards;
+  --animate-step: step 0.34s ease-in-out infinite alternate;
+  --animate-swing: swing 0.34s ease-in-out infinite alternate;
+
+  @keyframes step {
+    0% {
+      transform: translateY(-11px);
+    }
+
+    100% {
+      transform: translateY(11px);
+    }
+  }
+
+  @keyframes swing {
+    0% {
+      transform: translateY(5px);
+    }
+
+    100% {
+      transform: translateY(-5px);
+    }
+  }
 
   @keyframes leaf-pop {
     0% {
       opacity: 1;
       transform: translate(0, 0) rotate(0deg);
     }
+
     60% {
       opacity: 1;
     }
+
     100% {
       opacity: 0;
       transform: translate(var(--pop-x), var(--pop-y)) rotate(var(--pop-spin));
@@ -39,9 +63,11 @@
       opacity: 0;
       transform: translateY(6px);
     }
+
     20% {
       opacity: 1;
     }
+
     100% {
       opacity: 0;
       transform: translateY(-26px);

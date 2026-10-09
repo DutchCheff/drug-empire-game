@@ -1,4 +1,4 @@
-import { ROOM } from './colors'
+import { ROOM } from '../colors'
 import { FLOOR, ROOM_HEIGHT, ROOM_WIDTH } from './roomLayout'
 
 const TILE = 92

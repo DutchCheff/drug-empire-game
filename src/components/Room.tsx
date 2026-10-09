@@ -1,8 +1,9 @@
 import type { CSSProperties } from "react";
-import { LockedSlot } from "../art/LockedSlot";
-import { RoomBackground } from "../art/RoomBackground";
-import { POT_SLOTS, ROOM_HEIGHT, ROOM_WIDTH, SLOT_SIZE } from "../art/roomLayout";
-import type { Pot } from "../game/types";
+import { LockedSlot } from "../art/room/LockedSlot";
+import { RoomBackground } from "../art/room/RoomBackground";
+import { POT_SLOTS, ROOM_HEIGHT, ROOM_WIDTH, SLOT_SIZE, WAIT_SPOTS } from '../art/room/roomLayout'
+import type { Dealer, Pot } from '../game/types'
+import { RoomDealer } from "./RoomDealer";
 import { PotButton } from "./PotButton";
 
 function slotStyle(index: number): CSSProperties {
@@ -43,12 +44,15 @@ function BuySlot(props: BuySlotProps) {
 
 type RoomProps = {
     pots: Pot[]
+    dealers: Dealer[]
+    stash: number
     now: number
     potCost: number
     canBuyPot: boolean
     canPlant: boolean
     onPotClick: (potId: number) => void
     onBuyPot: () => void
+    onSendDealer: (dealerId: number, grams: number) => void
 }
 
 export function Room(props: RoomProps) {
@@ -80,6 +84,16 @@ export function Room(props: RoomProps) {
                         </svg>
                     )}
                 </div>
+            ))}
+            {props.dealers.map((dealer, index) => (
+                <RoomDealer
+                    key={dealer.id}
+                    dealer={dealer}
+                    spot={WAIT_SPOTS[index % WAIT_SPOTS.length]}
+                    now={props.now}
+                    canSend={props.stash > 0}
+                    onSend={() => props.onSendDealer(dealer.id, dealer.stats.capacity)}
+                />
             ))}
         </div>
     )
