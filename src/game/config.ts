@@ -37,5 +37,13 @@ export const CONFIG = {
     gardener: { hireCost: 150, wagePerMinute: 2, actionSeconds: 2, walkSeconds: 1.2 },
     runner: { hireCost: 250, wagePerMinute: 3, actionSeconds: 1},
   },
+  dock: {
+    buildCost: 400,
+    offers: [
+      { name: 'Seed crate', amount: 250, price: 800, seconds: 60 },
+      { name: 'Seed pallet', amount: 1000, price: 3000, seconds: 90 },
+    ],
+  },
+  offline: { capHours: 2, stepSeconds: 0.5 },
   awaySummarySeconds: 60,
 } as const

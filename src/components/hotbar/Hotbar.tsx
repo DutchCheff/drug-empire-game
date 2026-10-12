@@ -21,11 +21,13 @@ type HotbarProps = {
     staff: StaffMember[]
     staffPaid: boolean
     minStash: number
+    fullLoadsOnly: boolean
     onSend: (dealerId: number, grams: number) => void
     onHire: (candidateIndex: number) => void
     onHireStaff: (role: StaffRole) => void
     onToggleStaff: (role: StaffRole) => void
     onMinStash: (grams: number) => void
+    onFullLoadsOnly: (value: boolean) => void
 }
 
 export function Hotbar(props: HotbarProps) {
@@ -101,7 +103,12 @@ export function Hotbar(props: HotbarProps) {
                     {staffModal === 'gardener' ? (
                         <GardenerSettings />
                     ) : (
-                        <RunnerSettings minStash={props.minStash} onMinStash={props.onMinStash} />
+                        <RunnerSettings
+                            minStash={props.minStash}
+                            fullLoadsOnly={props.fullLoadsOnly}
+                            onMinStash={props.onMinStash}
+                            onFullLoadsOnly={props.onFullLoadsOnly}
+                        />
                     )}
                 </StaffModal>
             )}

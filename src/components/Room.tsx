@@ -3,8 +3,10 @@ import { LockedSlot } from "../art/room/LockedSlot";
 import { RoomBackground } from "../art/room/RoomBackground";
 import { StashTable } from "../art/room/StashTable";
 import { POT_SLOTS, ROOM_HEIGHT, ROOM_WIDTH, SLOT_SIZE, WAIT_SPOTS, STASH } from '../art/room/roomLayout'
-import type { Dealer, Pot, StaffMember } from '../game/types'
+import { dockStatus } from '../game/dock'
+import type { Dealer, Dock, Pot, StaffMember } from '../game/types'
 import { RoomDealer } from "./RoomDealer";
+import { RoomDock } from './RoomDock'
 import { RoomStaff } from './RoomStaff'
 import { PotButton } from "./PotButton";
 
@@ -48,7 +50,9 @@ type RoomProps = {
     pots: Pot[]
     dealers: Dealer[]
     staff: StaffMember[]
+    dock: Dock
     stash: number
+    cash: number
     now: number
     potCost: number
     canBuyPot: boolean
@@ -56,6 +60,9 @@ type RoomProps = {
     onPotClick: (potId: number) => void
     onBuyPot: () => void
     onSendDealer: (dealerId: number, grams: number) => void
+    onBuildDock: () => void
+    onOrderPallet: (offerIndex: number) => void
+    onUnloadPallet: () => void
 }
 
 export function Room(props: RoomProps) {
@@ -66,7 +73,7 @@ export function Room(props: RoomProps) {
 
     return (
         <div className="relative aspect-2/1 w-full max-w-300 overflow-hidden rounded-xl">
-            <RoomBackground />
+            <RoomBackground dockBuilt={props.dock.built} dockOpen={dockStatus(props.dock, props.now) === 'atDock'} />
             <svg viewBox={`0 0 ${ROOM_WIDTH} ${ROOM_HEIGHT}`} className="pointer-events-none absolute inset-0 h-full w-full" aria-hidden="true">
                 <g transform={`translate(${STASH.x} ${STASH.y}) scale(1.3)`}>
                     <StashTable grams={props.stash} />
@@ -93,6 +100,14 @@ export function Room(props: RoomProps) {
                     )}
                 </div>
             ))}
+            <RoomDock
+                dock={props.dock}
+                now={props.now}
+                cash={props.cash}
+                onBuild={props.onBuildDock}
+                onOrder={props.onOrderPallet}
+                onUnload={props.onUnloadPallet}
+            />
             {props.dealers.map((dealer, index) => (
                 <RoomDealer
                     key={dealer.id}

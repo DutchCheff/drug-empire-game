@@ -56,3 +56,22 @@ export function SeedIcon(props: IconProps) {
         </svg>
     )
 }
+export function VanIcon(props: IconProps) {
+    return (
+        <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={1.8}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className={props.className}
+            aria-hidden="true"
+        >
+            <path d="M2 7 H15 V17 H2 Z" />
+            <path d="M15 10 H19 L22 13 V17 H15" />
+            <circle cx={6} cy={18} r={1.6} />
+            <circle cx={18} cy={18} r={1.6} />
+        </svg>
+    )
+}

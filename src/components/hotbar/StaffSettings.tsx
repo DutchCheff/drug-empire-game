@@ -30,7 +30,9 @@ export function GardenerSettings() {
 
 type RunnerSettingsProps = {
     minStash: number
+    fullLoadsOnly: boolean
     onMinStash: (grams: number) => void
+    onFullLoadsOnly: (value: boolean) => void
 }
 
 export function RunnerSettings(props: RunnerSettingsProps) {
@@ -52,8 +54,26 @@ export function RunnerSettings(props: RunnerSettingsProps) {
                     className="accent-leaf"
                 />
             </label>
+            <div className="flex items-center justify-between gap-3 text-sm">
+                <span id="full-loads-label">Full loads only</span>
+                <button
+                    type="button"
+                    role="switch"
+                    aria-checked={props.fullLoadsOnly}
+                    aria-labelledby="full-loads-label"
+                    onClick={() => props.onFullLoadsOnly(!props.fullLoadsOnly)}
+                    className={`relative h-6 w-11 cursor-pointer rounded-full transition-colors ${props.fullLoadsOnly ? 'bg-leaf' : 'bg-edge'}`}
+                >
+                    <span
+                        className={`absolute top-0.75 size-4.5 rounded-full transition-[left] ${props.fullLoadsOnly ? 'left-5.75 bg-ink' : 'left-0.75 bg-muted'}`}
+                    />
+                </button>
+            </div>
             <p className="text-sm text-muted">
-                Everything above {props.minStash} g goes to the idle dealer who earns you the most: load × (1 − cut).
+                {props.fullLoadsOnly
+                    ? `A dealer only goes out when there is a full load for them above ${props.minStash} g.`
+                    : `Everything above ${props.minStash} g goes out, even if a dealer can't be filled.`}{' '}
+                The idle dealer who earns you the most goes first: load × (1 − cut).
             </p>
         </section>
     )

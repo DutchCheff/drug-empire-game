@@ -1,6 +1,8 @@
 import { useState, type ReactNode } from 'react'
-import { CashIcon, GramsIcon, SeedIcon } from '../art/icons'
+import { CashIcon, GramsIcon, SeedIcon, VanIcon } from '../art/icons'
 import { CONFIG } from '../game/config'
+import { dockStatus, formatClock, secondsLeft } from '../game/dock'
+import type { Dock } from '../game/types'
 import { StoreModal } from './StoreModal'
 
 type CounterProps = {
@@ -19,12 +21,47 @@ function Counter(props: CounterProps) {
     )
 }
 
+type DockChipProps = {
+    dock: Dock
+    now: number
+    onUnload: () => void
+}
+
+function DockChip(props: DockChipProps) {
+    const status = dockStatus(props.dock, props.now)
+    if (status === 'atDock') {
+        return (
+            <button
+                type="button"
+                onClick={props.onUnload}
+                className="flex cursor-pointer items-center gap-2 rounded-lg border border-gold px-3 py-2 font-mono text-gold hover:bg-gold/10"
+            >
+                <VanIcon className="size-5" />
+                Unload
+            </button>
+        )
+    }
+    if (status === 'onTheWay' && props.dock.order !== null) {
+        return (
+            <div className="flex items-center gap-2 rounded-lg bg-ground px-3 py-2 text-muted">
+                <VanIcon className="size-5" />
+                <span className="sr-only">Van arrives in</span>
+                <span className="font-mono text-lg text-paper">{formatClock(secondsLeft(props.dock.order, props.now))}</span>
+            </div>
+        )
+    }
+    return null
+}
+
 type HudProps = {
     cash: number
     grams: number
     seedStock: number
+    dock: Dock
+    now: number
     onSell: () => void
     onBuySeeds: (offerIndex: number) => void
+    onUnload: () => void
 }
 
 export function Hud(props: HudProps) {
@@ -40,6 +77,7 @@ export function Hud(props: HudProps) {
                     <Counter label="Cash" value={`$${props.cash}`} icon={<CashIcon className="size-5" />} />
                     <Counter label="Stash" value={`${props.grams} g`} icon={<GramsIcon className="size-5" />} />
                     <Counter label="Seeds" value={`${props.seedStock}`} icon={<SeedIcon className="size-5" />} />
+                    <DockChip dock={props.dock} now={props.now} onUnload={props.onUnload} />
                 </div>
                 <div className="flex flex-wrap items-center gap-3">
                     <button

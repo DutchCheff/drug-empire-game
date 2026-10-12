@@ -33,3 +33,11 @@ export const DOOR_OUTSIDE = { x: 800, y: 650 }
 export const STASH = { x: 900, y: 100 }
 export const GARDENER_HOME = { x: 290, y: 490 }
 export const RUNNER_SPOT = { x: 790, y: 170 }
+
+export const DOCK = {
+    apron: { x: 991, y: 372, width: 209, height: 181 },
+    door: { x: 968, y: 400, width: 23, height: 90 },
+    bay: { x: 880, y: 404, width: 72, height: 82 },
+    pallet: { x: 924, y: 445 },
+    van: { x: 1068, y: 445 },
+}

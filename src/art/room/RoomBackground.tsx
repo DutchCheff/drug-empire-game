@@ -1,5 +1,5 @@
 import { ROOM } from '../colors'
-import { FLOOR, ROOM_HEIGHT, ROOM_WIDTH } from './roomLayout'
+import { DOCK, FLOOR, ROOM_HEIGHT, ROOM_WIDTH } from './roomLayout'
 
 const TILE = 92
 const STREET_TOP = 552
@@ -12,7 +12,78 @@ function range(from: number, to: number, step: number) {
     return values
 }
 
-export function RoomBackground() {
+type LoadingDockProps = {
+    open: boolean
+}
+
+function LoadingDock(props: LoadingDockProps) {
+    const door = DOCK.door
+    const bay = DOCK.bay
+    const apron = DOCK.apron
+    const laneLeft = apron.x + 13
+    const laneRight = apron.x + apron.width - 10
+
+    return (
+        <g>
+            <defs>
+                <pattern id="dock-hazard" width={12} height={12} patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+                    <rect width={12} height={12} fill={ROOM.hazardDark} />
+                    <rect width={6} height={12} fill={ROOM.hazardGold} />
+                </pattern>
+            </defs>
+            <rect x={apron.x} y={apron.y} width={apron.width} height={apron.height} fill={ROOM.apron} />
+            <path
+                d={`M${laneLeft} ${door.y - 4} H${laneRight} M${laneLeft} ${door.y + door.height + 4} H${laneRight}`}
+                stroke={ROOM.laneLine}
+                strokeWidth={2}
+                strokeDasharray="14 8"
+            />
+            <path d={`M${apron.x} ${apron.y} H${ROOM_WIDTH}`} stroke={ROOM.curb} strokeWidth={2} />
+            <rect x={door.x - 12} y={door.y} width={12} height={door.height} fill="url(#dock-hazard)" />
+            <rect
+                x={bay.x}
+                y={bay.y}
+                width={bay.width}
+                height={bay.height}
+                rx={2}
+                fill="none"
+                stroke={ROOM.bay}
+                strokeWidth={2}
+                strokeDasharray="8 5"
+            />
+            <rect
+                x={door.x}
+                y={door.y}
+                width={door.width}
+                height={door.height}
+                fill={props.open ? ROOM.hazardDark : ROOM.threshold}
+                stroke={ROOM.rollerEdge}
+                strokeWidth={1}
+            />
+            {props.open ? (
+                <path
+                    d={`M${door.x + 2} ${door.y + 3} H${door.x + 20} M${door.x + 2} ${door.y + door.height - 3} H${door.x + 20}`}
+                    stroke={ROOM.rollerRib}
+                    strokeWidth={2}
+                />
+            ) : (
+                range(door.y + 9, door.y + door.height, 9).map((y) => (
+                    <path key={y} d={`M${door.x + 2} ${y} H${door.x + 21}`} stroke={ROOM.rollerRib} strokeWidth={1.5} />
+                ))
+            )}
+            {[door.y - 9, door.y + door.height + 9].map((y) => (
+                <circle key={y} cx={apron.x + 10} cy={y} r={6} fill={ROOM.bollard} stroke={ROOM.bollardShade} strokeWidth={1.2} />
+            ))}
+        </g>
+    )
+}
+
+type RoomBackgroundProps = {
+    dockBuilt: boolean
+    dockOpen: boolean
+}
+
+export function RoomBackground(props: RoomBackgroundProps) {
     return (
         <svg viewBox={`0 0 ${ROOM_WIDTH} ${ROOM_HEIGHT}`} className="absolute inset-0 h-full w-full" aria-hidden="true">
             <rect width={ROOM_WIDTH} height={ROOM_HEIGHT} fill={ROOM.outside} />
@@ -51,6 +122,8 @@ export function RoomBackground() {
                 fill="none"
             />
             <rect x={757} y={448} width={7} height={80} rx={1} fill={ROOM.door} stroke={ROOM.doorShade} strokeWidth={1} />
+
+            {props.dockBuilt && <LoadingDock open={props.dockOpen} />}
         </svg>
     )
 }

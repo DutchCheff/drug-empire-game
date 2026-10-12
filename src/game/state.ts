@@ -2,6 +2,7 @@ import { CONFIG } from "./config";
 import { makeRoller } from '../lib/random'
 import { hireCost, nextPotCost } from './costs'
 import { createDealer, rollCandidates, updateDealers } from './dealers'
+import { arrivalAt } from './dock'
 import { findStaff, payWages } from "./staff";
 import { getStage, GROW_SECONDS } from "./plants";
 import type { Dealer, GameState, Pot, StaffMember, StaffRole } from "./types";
@@ -21,6 +22,10 @@ export type GameAction =
     | { type: 'hireStaff'; role: StaffRole; now: number }
     | { type: 'toggleStaff'; role: StaffRole }
     | { type: 'setMinStash'; grams: number }
+    | { type: 'setFullLoadsOnly'; value: boolean }
+    | { type: 'buildDock' }
+    | { type: 'orderPallet'; offerIndex: number; now: number }
+    | { type: 'unloadPallet'; now: number }
 
 export function createInitialState(now: number): GameState {
     const pots: Pot[] = []
@@ -39,6 +44,8 @@ export function createInitialState(now: number): GameState {
         staffPaid: true,
         nextPayday: 0,
         minStash: CONFIG.staff.defaultMinStash,
+        fullLoadsOnly: true,
+        dock: { built: false, order: null, lastUnload: null },
         seed: roller.nextSeed(),
         savedAt: now,
     }
@@ -90,6 +97,18 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         }
         case 'setMinStash': {
             return { ...state, minStash: Math.max(0, Math.floor(action.grams)) }
+        }
+        case 'setFullLoadsOnly': {
+            return { ...state, fullLoadsOnly: action.value }
+        }
+        case 'buildDock': {
+            return buildDock(state)
+        }
+        case 'orderPallet': {
+            return orderPallet(state, action.offerIndex, action.now)
+        }
+        case 'unloadPallet': {
+            return unloadPallet(state, action.now)
         }
     }
 }
@@ -298,7 +317,9 @@ function runRunner(state: GameState, now: number): GameState {
         return state
     }
     const available = state.grams - state.minStash
-    const idle = state.dealers.filter((dealer) => dealer.status === 'idle')
+    const idle = state.dealers.filter(
+        (dealer) => dealer.status === 'idle' && (!state.fullLoadsOnly || dealer.stats.capacity <= available),
+    )
     if (idle.length === 0 || available < 1) {
         return state
     }
@@ -309,5 +330,37 @@ function runRunner(state: GameState, now: number): GameState {
     return {
         ...next,
         staff: next.staff.map((member) => (member.role === 'runner' ? { ...member, nextActionAt } : member)),
+    }
+}
+
+function buildDock(state: GameState): GameState {
+    if (state.dock.built || state.cash < CONFIG.dock.buildCost) {
+        return state
+    }
+    return { ...state, cash: state.cash - CONFIG.dock.buildCost, dock: { ...state.dock, built: true } }
+}
+
+function orderPallet(state: GameState, offerIndex: number, now: number): GameState {
+    const offer = CONFIG.dock.offers[offerIndex]
+    if (offer === undefined || !state.dock.built || state.dock.order !== null || state.cash < offer.price) {
+        return state
+    }
+    return {
+        ...state,
+        cash: state.cash - offer.price,
+        dock: { ...state.dock, order: { offerIndex, orderedAt: now } },
+    }
+}
+
+function unloadPallet(state: GameState, now: number): GameState {
+    const order = state.dock.order
+    if (order === null || now < arrivalAt(order)) {
+        return state
+    }
+    const amount = CONFIG.dock.offers[order.offerIndex].amount
+    return {
+        ...state,
+        seedStock: state.seedStock + amount,
+        dock: { ...state.dock, order: null, lastUnload: { amount, at: now } },
     }
 }

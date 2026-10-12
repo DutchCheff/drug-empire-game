@@ -54,6 +54,37 @@ hire dealers to sell, reinvest.
   - Dealer gear: e.g. bigger backpack (+capacity), burner phone (−arrest chance).
   - Grow gear: lamps (faster growth), fertilizer (bigger yield).
 
+## Loading dock (first building expansion)
+Design: canvas board "Loading dock" and the van in "Full game · vision".
+The apartment's first expansion slot; the warehouse later gets a bigger dock.
+
+- **Where**: a roller door in the right wall at the bottom row, with a
+  driveway outside it (hazard stripes, bollards, dashed bay inside the door).
+  Dealers keep using the front door, so the two flows don't cross.
+- **Slot**: before it's built, a dashed slot with a lock: "Dock · $400".
+- **Flow**: click the dock door → Bulk order panel → order (paid now). A timer
+  ring sits in the bay, the van drives in along the street and backs in, the
+  door rolls up and the pallet waits with a gold ring. Click the pallet (or
+  the "Unload" chip in the top bar) → everything goes to stock, "+250 seeds"
+  floats up, the van drives off.
+- **Orders**: one van, one order at a time.
+
+| Pallet        | Contents         | Price  | Each  | Van  |
+|---------------|------------------|--------|-------|------|
+| Seed crate    | 250 seeds        | $800   | $3.20 | 60 s |
+| Seed pallet   | 1,000 seeds      | $3,000 | $3.00 | 90 s |
+| Fertilizer    | 20 bags (Soon)   |        |       | 60 s |
+| Lab supplies  | 10 crates (Soon) |        |       | 90 s |
+
+- Top-bar chip while an order runs: van icon + countdown, "Unload" when in.
+- Toasts: "Van on the way · 1:00", "Van at the dock · unload the pallet",
+  "Unloaded · +250 seeds".
+- **Offline**: the van arrives offline too; the pallet waits for you and the
+  away summary says "Van waiting at the dock".
+- **Later on the same dock**: fertilizer pallets (with grow gear), supplier
+  crates (coke), lab supplies. Auto-restock idea: the runner unloads and
+  reorders below a seed threshold, so the gardener keeps working while away.
+
 ## Staff (automation)
 - Staff cost a one-time hire fee plus a wage per minute, paid from cash.
   When cash can't cover the wage, staff stop working until it can.
@@ -70,9 +101,11 @@ hire dealers to sell, reinvest.
 - Later: more/faster staff, rules per dealer (e.g. only dealers with a low cut).
 
 ## Offline with automation
-Once staff work on their own, time away matters: simulate gardener,
-runner, dealer trips and wages for the time away, capped at 2 hours,
-and show it in the "While you were away" summary.
+On load the game replays the time away in 0.5 s steps (gardener, runner,
+dealer trips, wages), capped at 2 hours. Time beyond the cap is skipped:
+plants, trips and paydays are moved forward so nothing happens in it.
+The "While you were away" summary shows trips sold / robbed / arrested,
+plants harvested, loads sent, wages paid and the net cash change.
 
 ## Implemented
 - Plants: seed → seedling → vegetative → flowering → ready (10 s per stage),
@@ -92,15 +125,17 @@ and show it in the "While you were away" summary.
   Pause/Resume. Gardener walks to a pot, harvests and replants it right
   away. Runner keeps a minimum stash and sends the best-paying idle dealer.
   Both visible in the room.
+- Offline replay with the 2-hour cap; away summary shows staff work and wages.
+- Loading dock: build slot, bulk order panel, van drive-in and drive-off,
+  pallet unload, top-bar chip, dock toasts, offline arrival.
 - Trip toasts, "While you were away" summary, save in localStorage.
 - Dev panel (dev only): set cash and grams, ripen all pots.
 
 ## Roadmap (implementation, in order)
-1. Offline simulation with the 2-hour cap; away summary shows staff work
-   and wages.
-2. Store expansions: strains, dealer gear, grow gear (lamp, fertilizer);
-   gardener settings for strain and fertilizer.
-3. Later: police heat, bigger buildings, prestige.
+1. Store expansions: strains, dealer gear, grow gear (lamp, fertilizer);
+   gardener settings for strain and fertilizer; fertilizer pallet on the dock.
+2. Dock auto-restock (runner unloads and reorders below a threshold).
+3. Later: police heat, bigger buildings (warehouse, see canvas), prestige.
 
 Design happens in a separate chat on the canvas; boards marked "vision" or
 "Soon" are ideas until they're added to this roadmap.

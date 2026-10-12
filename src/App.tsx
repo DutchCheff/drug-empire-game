@@ -51,14 +51,19 @@ function App() {
         grams={state.grams}
         onSell={() => dispatch({ type: 'sell', grams: 1 })}
         seedStock={state.seedStock}
+        dock={state.dock}
+        now={now}
         onBuySeeds={(offerIndex) => dispatch({ type: 'buySeeds', offerIndex })}
+        onUnload={() => dispatch({ type: 'unloadPallet', now })}
       />
 
       <Room
         pots={state.pots}
         dealers={state.dealers}
         staff={state.staff}
+        dock={state.dock}
         stash={state.grams}
+        cash={state.cash}
         now={now}
         potCost={potCost}
         canBuyPot={canBuyPot}
@@ -66,6 +71,9 @@ function App() {
         onPotClick={(potId) => dispatch({ type: 'clickPot', potId, now })}
         onBuyPot={() => dispatch({ type: 'buyPot' })}
         onSendDealer={(dealerId, grams) => dispatch({ type: 'sendDealer', dealerId, grams, now })}
+        onBuildDock={() => dispatch({ type: 'buildDock' })}
+        onOrderPallet={(offerIndex) => dispatch({ type: 'orderPallet', offerIndex, now })}
+        onUnloadPallet={() => dispatch({ type: 'unloadPallet', now })}
       />
 
       <Hotbar
@@ -77,15 +85,17 @@ function App() {
         staff={state.staff}
         staffPaid={state.staffPaid}
         minStash={state.minStash}
+        fullLoadsOnly={state.fullLoadsOnly}
         onSend={(dealerId, grams) => dispatch({ type: 'sendDealer', dealerId, grams, now })}
         onHire={(candidateIndex) => dispatch({ type: 'hireDealer', candidateIndex })}
         onHireStaff={(role) => dispatch({ type: 'hireStaff', role, now })}
         onToggleStaff={(role) => dispatch({ type: 'toggleStaff', role })}
         onMinStash={(grams) => dispatch({ type: 'setMinStash', grams })}
+        onFullLoadsOnly={(value) => dispatch({ type: 'setFullLoadsOnly', value })}
       />
 
       {awaySummary !== null && <AwayModal summary={awaySummary} onClose={() => setAwaySummary(null)} />}
-      <TripToasts dealers={state.dealers} now={now} />
+      <TripToasts dealers={state.dealers} dock={state.dock} now={now} />
       {import.meta.env.DEV && (
         <DevPanel
           cash={state.cash}

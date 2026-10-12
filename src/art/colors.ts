@@ -51,4 +51,35 @@ export const ROOM = {
     threshold: '#57514A',
     door: '#8B5E3C',
     doorShade: '#6E482C',
+    apron: '#2B2825',
+    laneLine: 'rgba(236,230,218,0.22)',
+    hazardDark: '#2A2622',
+    hazardGold: '#C99A2E',
+    rollerRib: '#44484E',
+    rollerEdge: '#2A2C30',
+    bollard: '#E9B949',
+    bollardShade: '#B88E2A',
+    bay: 'rgba(233,185,73,0.7)',
+}
+
+export const DOCK_ART = {
+    pallet: '#A88454',
+    palletShade: '#7C5F38',
+    crate: '#9A6B40',
+    crateShade: '#6E482C',
+    crateSlat: '#86593A',
+    packet: '#E3D3A9',
+    packetEdge: '#BFAE82',
+    packetBand: '#CDBB8D',
+    ring: '#E9B949',
+}
+
+export const VAN = {
+    body: '#D9D4CA',
+    shade: '#A8A296',
+    roof: '#E8E4DC',
+    rib: '#C9C3B6',
+    glass: '#2A3440',
+    mirror: '#5A5E65',
+    cargo: '#2A2622',
 }

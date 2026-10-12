@@ -54,6 +54,22 @@ export type StaffMember = {
     movedAt: number
 }
 
+export type DockOrder = {
+    offerIndex: number
+    orderedAt: number
+}
+
+export type DockUnload = {
+    amount: number
+    at: number
+}
+
+export type Dock = {
+    built: boolean
+    order: DockOrder | null
+    lastUnload: DockUnload | null
+}
+
 export type GameState = {
     cash: number
     grams: number
@@ -65,6 +81,8 @@ export type GameState = {
     staffPaid: boolean
     nextPayday: number
     minStash: number
+    fullLoadsOnly: boolean
+    dock: Dock
     seed: number
     savedAt: number
 }
