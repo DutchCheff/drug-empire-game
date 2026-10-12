@@ -43,6 +43,17 @@ export type Dealer = DealerCandidate & {
     lastTrip: TripResult | null
 }
 
+export type StaffRole = 'gardener' | 'runner'
+
+export type StaffMember = {
+    role: StaffRole
+    enabled: boolean
+    nextActionAt: number
+    potId: number | null
+    targetPotId: number | null
+    movedAt: number
+}
+
 export type GameState = {
     cash: number
     grams: number
@@ -50,6 +61,10 @@ export type GameState = {
     pots: Pot[]
     dealers: Dealer[]
     candidates: DealerCandidate[]
+    staff: StaffMember[]
+    staffPaid: boolean
+    nextPayday: number
+    minStash: number
     seed: number
     savedAt: number
 }

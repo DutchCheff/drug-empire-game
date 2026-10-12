@@ -31,3 +31,5 @@ export const WAIT_SPOTS = [
 export const DOOR_INSIDE = { x: 800, y: 480 }
 export const DOOR_OUTSIDE = { x: 800, y: 650 }
 export const STASH = { x: 900, y: 100 }
+export const GARDENER_HOME = { x: 290, y: 490 }
+export const RUNNER_SPOT = { x: 790, y: 170 }

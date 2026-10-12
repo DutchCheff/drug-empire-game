@@ -51,12 +51,13 @@ function App() {
         grams={state.grams}
         onSell={() => dispatch({ type: 'sell', grams: 1 })}
         seedStock={state.seedStock}
-        onBuySeeds={(offerIndex) => dispatch({ type: 'buySeeds', offerIndex})}
+        onBuySeeds={(offerIndex) => dispatch({ type: 'buySeeds', offerIndex })}
       />
 
       <Room
         pots={state.pots}
         dealers={state.dealers}
+        staff={state.staff}
         stash={state.grams}
         now={now}
         potCost={potCost}
@@ -73,8 +74,14 @@ function App() {
         now={now}
         stash={state.grams}
         cash={state.cash}
+        staff={state.staff}
+        staffPaid={state.staffPaid}
+        minStash={state.minStash}
         onSend={(dealerId, grams) => dispatch({ type: 'sendDealer', dealerId, grams, now })}
         onHire={(candidateIndex) => dispatch({ type: 'hireDealer', candidateIndex })}
+        onHireStaff={(role) => dispatch({ type: 'hireStaff', role, now })}
+        onToggleStaff={(role) => dispatch({ type: 'toggleStaff', role })}
+        onMinStash={(grams) => dispatch({ type: 'setMinStash', grams })}
       />
 
       {awaySummary !== null && <AwayModal summary={awaySummary} onClose={() => setAwaySummary(null)} />}

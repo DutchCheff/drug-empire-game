@@ -3,8 +3,9 @@ import { LockedSlot } from "../art/room/LockedSlot";
 import { RoomBackground } from "../art/room/RoomBackground";
 import { StashTable } from "../art/room/StashTable";
 import { POT_SLOTS, ROOM_HEIGHT, ROOM_WIDTH, SLOT_SIZE, WAIT_SPOTS, STASH } from '../art/room/roomLayout'
-import type { Dealer, Pot } from '../game/types'
+import type { Dealer, Pot, StaffMember } from '../game/types'
 import { RoomDealer } from "./RoomDealer";
+import { RoomStaff } from './RoomStaff'
 import { PotButton } from "./PotButton";
 
 function slotStyle(index: number): CSSProperties {
@@ -46,6 +47,7 @@ function BuySlot(props: BuySlotProps) {
 type RoomProps = {
     pots: Pot[]
     dealers: Dealer[]
+    staff: StaffMember[]
     stash: number
     now: number
     potCost: number
@@ -100,6 +102,9 @@ export function Room(props: RoomProps) {
                     canSend={props.stash > 0}
                     onSend={() => props.onSendDealer(dealer.id, dealer.stats.capacity)}
                 />
+            ))}
+            {props.staff.map((member) => (
+                <RoomStaff key={member.role} member={member} now={props.now} />
             ))}
         </div>
     )

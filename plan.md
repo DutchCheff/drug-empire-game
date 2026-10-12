@@ -62,7 +62,9 @@ hire dealers to sell, reinvest.
   Proposed: hire $150, wage $2/min.
 - **Runner**: hands product to idle dealers automatically. Settings:
   on/off, minimum stash to keep (default 20 g); everything above that is
-  given out, each dealer filled up to their capacity.
+  given out, each dealer filled up to their capacity. Of the dealers waiting
+  in the room, the runner first picks the one that earns you the most:
+  load (capacity, or what's left above the minimum) × (1 − cut).
   Proposed: hire $250, wage $3/min.
 - Staff walk around in the room like dealers (art step after the logic).
 - Later: more/faster staff, rules per dealer (e.g. only dealers with a low cut).
@@ -78,26 +80,27 @@ and show it in the "While you were away" summary.
 - Room: 3×3 pot slots (start with 4, buy up to 9), stash table that fills up,
   door, street.
 - Top bar: cash, stash, seeds, Store, Sell 1 g.
-- Store (panel for now): seeds 1 / 10 / 100; planting uses seed stock.
+- Modal shell for every panel (Escape / backdrop closes).
+- Store modal: seeds 1 / 10 / 100 with price per seed and savings; other
+  tabs marked "Soon". Planting uses seed stock.
 - Dealers: 3 candidates with random stats, hire fee by quality (max 6),
-  hand-off by amount (hotbar) or full load (click in the room), trips with
-  sold / robbed / arrested, jail time, walking sprites, portraits in the hotbar.
+  Send modal with amount and expected payout, full load by clicking a dealer
+  in the room, trips with sold / robbed / arrested, jail time, walking
+  sprites, portraits.
+- Tabbed hotbar: Dealers, Growers, Runners (slides open and closed).
+- Staff: hire fee + wage per minute, unpaid state, Staff modal with
+  Pause/Resume. Gardener walks to a pot, harvests and replants it right
+  away. Runner keeps a minimum stash and sends the best-paying idle dealer.
+  Both visible in the room.
 - Trip toasts, "While you were away" summary, save in localStorage.
 - Dev panel (dev only): set cash and grams, ripen all pots.
 
 ## Roadmap (implementation, in order)
-1. Modal shell from the UI kit; Store becomes a modal (tabs: Seeds now,
-   the other tabs marked "Soon").
-2. Send and Hire move into modals; Send shows the expected payout.
-3. Tabbed hotbar: Dealers tab now, Growers and Runners tabs ready for staff.
-4. Staff logic: hiring, wages per minute, unpaid state; gardener plants and
-   harvests.
-5. Runner with settings (on/off, minimum stash) and the Staff modal.
-6. Staff characters in the room (gardener, runner).
-7. Offline simulation with the 2-hour cap; away summary shows staff work
+1. Offline simulation with the 2-hour cap; away summary shows staff work
    and wages.
-8. Store expansions: strains, dealer gear, grow gear (lamp, fertilizer).
-9. Later: police heat, bigger buildings, prestige.
+2. Store expansions: strains, dealer gear, grow gear (lamp, fertilizer);
+   gardener settings for strain and fertilizer.
+3. Later: police heat, bigger buildings, prestige.
 
 Design happens in a separate chat on the canvas; boards marked "vision" or
 "Soon" are ideas until they're added to this roadmap.

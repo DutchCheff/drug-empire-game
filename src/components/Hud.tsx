@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from 'react'
 import { CashIcon, GramsIcon, SeedIcon } from '../art/icons'
 import { CONFIG } from '../game/config'
-import { StorePanel } from './StorePanel'
+import { StoreModal } from './StoreModal'
 
 type CounterProps = {
     label: string
@@ -44,7 +44,7 @@ export function Hud(props: HudProps) {
                 <div className="flex flex-wrap items-center gap-3">
                     <button
                         type="button"
-                        onClick={() => setStoreOpen(!storeOpen)}
+                        onClick={() => setStoreOpen(true)}
                         className={`${buttonClass} border border-edge bg-ground text-paper`}
                     >
                         Store
@@ -54,7 +54,14 @@ export function Hud(props: HudProps) {
                     </button>
                 </div>
             </header>
-            {storeOpen && <StorePanel cash={props.cash} onBuySeeds={props.onBuySeeds} onClose={() => setStoreOpen(false)} />}
+            {storeOpen && (
+                <StoreModal
+                    cash={props.cash}
+                    seedStock={props.seedStock}
+                    onBuySeeds={props.onBuySeeds}
+                    onClose={() => setStoreOpen(false)}
+                />
+            )}
         </>
     )
 }

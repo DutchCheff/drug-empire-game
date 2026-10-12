@@ -22,7 +22,7 @@ export const CONFIG = {
     maxDealers: 6,
     hireCostMultiplier: [0.6, 1.8],
     capacity: [10, 25],
-    //Share of the stree price the dealer keeps.
+    //Share of the street price the dealer keeps.
     cut: [0.15, 0.4],
     robberyChance: [0.02, 0.1],
     arrestChance: [0.01, 0.05],
@@ -30,6 +30,12 @@ export const CONFIG = {
   pot: {
     baseCost: 25,
     costGrowth: 1.4,
+  },
+  staff: {
+    payEverySeconds: 60,
+    defaultMinStash: 20,
+    gardener: { hireCost: 150, wagePerMinute: 2, actionSeconds: 2, walkSeconds: 1.2 },
+    runner: { hireCost: 250, wagePerMinute: 3, actionSeconds: 1},
   },
   awaySummarySeconds: 60,
 } as const

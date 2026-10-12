@@ -115,6 +115,10 @@
 }
 
 @layer base {
+  :root {
+    color-scheme: dark
+  }
+
   body {
     @apply bg-ground font-sans text-paper;
   }

@@ -2,8 +2,9 @@ import { CONFIG } from "./config";
 import { makeRoller } from '../lib/random'
 import { hireCost, nextPotCost } from './costs'
 import { createDealer, rollCandidates, updateDealers } from './dealers'
+import { findStaff, payWages } from "./staff";
 import { getStage, GROW_SECONDS } from "./plants";
-import type { Dealer, GameState, Pot } from "./types";
+import type { Dealer, GameState, Pot, StaffMember, StaffRole } from "./types";
 
 export type GameAction =
     | { type: 'plant'; potId: number; now: number }
@@ -17,6 +18,9 @@ export type GameAction =
     | { type: 'devSet'; cash: number; grams: number }
     | { type: 'devRipenPots'; now: number }
     | { type: 'buySeeds'; offerIndex: number }
+    | { type: 'hireStaff'; role: StaffRole; now: number }
+    | { type: 'toggleStaff'; role: StaffRole }
+    | { type: 'setMinStash'; grams: number }
 
 export function createInitialState(now: number): GameState {
     const pots: Pot[] = []
@@ -31,6 +35,10 @@ export function createInitialState(now: number): GameState {
         pots,
         dealers: [],
         candidates: rollCandidates(roller.roll),
+        staff: [],
+        staffPaid: true,
+        nextPayday: 0,
+        minStash: CONFIG.staff.defaultMinStash,
         seed: roller.nextSeed(),
         savedAt: now,
     }
@@ -73,6 +81,15 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         }
         case "buySeeds": {
             return buySeeds(state, action.offerIndex)
+        }
+        case 'hireStaff': {
+            return hireStaff(state, action.role, action.now)
+        }
+        case 'toggleStaff': {
+            return toggleStaff(state, action.role)
+        }
+        case 'setMinStash': {
+            return { ...state, minStash: Math.max(0, Math.floor(action.grams)) }
         }
     }
 }
@@ -198,11 +215,13 @@ function sendDealer(state: GameState, dealerId: number, grams: number, now: numb
 
 function tick(state: GameState, now: number): GameState {
     const roller = makeRoller(state.seed)
-    const updated = updateDealers(state, now, roller.roll)
-    if (updated === state) {
-        return state
+    let next = updateDealers(state, now, roller.roll)
+    if (next !== state) {
+        next = { ...next, seed: roller.nextSeed() }
     }
-    return { ...updated, seed: roller.nextSeed() }
+    next = payWages(next, now)
+    next = runGardener(next, now)
+    return runRunner(next, now)
 }
 
 function buySeeds(state: GameState, offerIndex: number):GameState {
@@ -211,4 +230,84 @@ function buySeeds(state: GameState, offerIndex: number):GameState {
         return state
     }
     return { ...state, cash: state.cash - offer.price, seedStock: state.seedStock + offer.amount}
+}
+
+
+function hireStaff(state: GameState, role: StaffRole, now: number): GameState {
+    const cost = CONFIG.staff[role].hireCost
+    if (findStaff(state.staff, role) !== undefined || state.cash < cost) {
+        return state
+    }
+    const member: StaffMember = { role, enabled: true, nextActionAt: now, potId: null, targetPotId: null, movedAt: now }
+    return {
+        ...state,
+        cash: state.cash - cost,
+        staff: [...state.staff, member],
+        staffPaid: true,
+        nextPayday: state.staff.length === 0 ? now + CONFIG.staff.payEverySeconds * 1000 : state.nextPayday,
+    }
+}
+
+function toggleStaff(state: GameState, role: StaffRole): GameState {
+    return {
+        ...state,
+        staff: state.staff.map((member) => (member.role === role ? { ...member, enabled: !member.enabled } : member)),
+    }
+}
+
+function updateGardener(state: GameState, changes: Partial<StaffMember>): GameState {
+    return {
+        ...state,
+        staff: state.staff.map((member) => (member.role === 'gardener' ? { ...member, ...changes } : member)),
+    }
+}
+
+function tendPot(state: GameState, potId: number, now: number) {
+    return plant(harvest(state, potId, now), potId, now)
+}
+
+function runGardener(state: GameState, now: number): GameState {
+    const gardener = findStaff(state.staff, 'gardener')
+    if (gardener === undefined || !gardener.enabled || !state.staffPaid) {
+        return state
+    }
+    const targetPotId = gardener.targetPotId ?? null
+    if (targetPotId !== null) {
+        if (now < gardener.movedAt + CONFIG.staff.gardener.walkSeconds * 1000) {
+            return state
+        }
+        const next = tendPot(state, targetPotId, now)
+        const nextActionAt = next === state ? now : now + CONFIG.staff.gardener.actionSeconds * 1000
+        return updateGardener(next, { potId: targetPotId, targetPotId: null, nextActionAt })
+    }
+    if (now < gardener.nextActionAt) {
+        return state
+    }
+    const ready = state.pots.find((pot) => getStage(pot, now) === 'ready')
+    const empty = state.seedStock > 0 ? state.pots.find((pot) => pot.plantedAt === null) : undefined
+    const target = ready ?? empty
+    if (target === undefined) {
+        return state
+    }
+    return updateGardener(state, { targetPotId: target.id, movedAt: now })
+}
+
+function runRunner(state: GameState, now: number): GameState {
+    const runner = findStaff(state.staff, 'runner')
+    if (runner === undefined || !runner.enabled || !state.staffPaid || now < runner.nextActionAt) {
+        return state
+    }
+    const available = state.grams - state.minStash
+    const idle = state.dealers.filter((dealer) => dealer.status === 'idle')
+    if (idle.length === 0 || available < 1) {
+        return state
+    }
+    const expectedCash = (dealer: Dealer) => Math.min(dealer.stats.capacity, available) * (1 - dealer.stats.cut)
+    const best = idle.reduce((choice, dealer) => (expectedCash(dealer) > expectedCash(choice) ? dealer : choice))
+    const next = sendDealer(state, best.id, Math.min(best.stats.capacity, available), now)
+    const nextActionAt = now + CONFIG.staff.runner.actionSeconds * 1000
+    return {
+        ...next,
+        staff: next.staff.map((member) => (member.role === 'runner' ? { ...member, nextActionAt } : member)),
+    }
 }
