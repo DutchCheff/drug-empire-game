@@ -1,5 +1,4 @@
 import type { CSSProperties } from "react";
-import { CONFIG } from "../../game/config";
 import { PLANT } from "../colors";
 import { polar } from "../geometry";
 import { FanLeaf } from "./Leaf";
@@ -10,6 +9,10 @@ type LeafBit = {
     end: { x: number; y: number };
     angle: number;
     spin: number
+}
+
+type HarvestPopProps = {
+    grams: number
 }
 
 function makeLeafBit(seed: number) {
@@ -29,7 +32,7 @@ function makeLeafBit(seed: number) {
 
 const LEAF_BITS = makeLeafBit(77)
 
-export function HarvestPop() {
+export function HarvestPop(props: HarvestPopProps) {
     return (
         <g pointerEvents="none" className="motion-reduce:hidden">
             {LEAF_BITS.map((bit, index) => {
@@ -58,7 +61,7 @@ export function HarvestPop() {
                 strokeWidth={3}
                 paintOrder="stroke"
             >
-                +{CONFIG.yieldGrams} g
+                +{props.grams} g
             </text>
         </g>
     )

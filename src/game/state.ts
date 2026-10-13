@@ -4,11 +4,12 @@ import { hireCost, nextPotCost } from './costs'
 import { createDealer, rollCandidates, updateDealers } from './dealers'
 import { arrivalAt } from './dock'
 import { findStaff, payWages } from "./staff";
-import { getStage, GROW_SECONDS } from "./plants";
-import type { Dealer, GameState, Pot, StaffMember, StaffRole } from "./types";
+import { getStage, growSeconds } from "./plants";
+import { getStrain } from "./strains";
+import type { Dealer, GameState, Pot, StaffMember, StaffRole, StrainId } from "./types";
 
 export type GameAction =
-    | { type: 'plant'; potId: number; now: number }
+    | { type: 'plant'; potId: number; strain: StrainId; now: number }
     | { type: 'harvest'; potId: number; now: number }
     | { type: 'sell'; grams: number }
     | { type: 'clickPot'; potId: number; now: number }
@@ -30,7 +31,7 @@ export type GameAction =
 export function createInitialState(now: number): GameState {
     const pots: Pot[] = []
     for (let index = 0; index < CONFIG.startPots; index++) {
-        pots.push({ id: index + 1, plantedAt: null })
+        pots.push({ id: index + 1, plantedAt: null, strain: 'classic' })
     }
     const roller = makeRoller(now)
     return {
@@ -54,7 +55,7 @@ export function createInitialState(now: number): GameState {
 export function gameReducer(state: GameState, action: GameAction): GameState {
     switch (action.type) {
         case 'plant': {
-            return plant(state, action.potId, action.now)
+            return plant(state, action.potId, action.now, action.strain)
         }
         case 'harvest': {
             return harvest(state, action.potId, action.now)
@@ -83,7 +84,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         case 'devRipenPots': {
             return {
                 ...state,
-                pots: state.pots.map((pot) => ({ ...pot, plantedAt: action.now - GROW_SECONDS * 1000 })),
+                pots: state.pots.map((pot) => ({ ...pot, plantedAt: action.now - growSeconds(pot) * 1000 })),
             }
         }
         case "buySeeds": {
@@ -113,7 +114,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     }
 }
 
-function plant(state: GameState, potId: number, now: number): GameState {
+function plant(state: GameState, potId: number, now: number, strain: StrainId): GameState {
     const pot = state.pots.find((item) => item.id === potId)
     if (pot === undefined || pot.plantedAt !== null) {
         return state
@@ -124,7 +125,7 @@ function plant(state: GameState, potId: number, now: number): GameState {
     return {
         ...state,
         seedStock: state.seedStock - 1,
-        pots: setPlantedAt(state.pots, potId, now),
+        pots: updatePot(state.pots, potId, { plantedAt: now, strain}),
     }
 }
 
@@ -135,8 +136,8 @@ function harvest(state: GameState, potId: number, now: number,): GameState {
     }
     return {
         ...state,
-        grams: state.grams + CONFIG.yieldGrams,
-        pots: setPlantedAt(state.pots, potId, null),
+        grams: state.grams + getStrain(pot.strain).yieldGrams,
+        pots: updatePot(state.pots, potId, {plantedAt: null}),
     }
 }
 
@@ -147,7 +148,7 @@ function clickPot(state: GameState, potId: number, now: number): GameState {
     }
     const stage = getStage(pot, now)
     if (stage === 'empty') {
-        return plant(state, potId, now)
+        return plant(state, potId, now, 'classic')
     }
     if (stage === 'ready') {
         return harvest(state, potId, now)
@@ -167,12 +168,12 @@ function sell(state: GameState, grams: number): GameState {
     }
 }
 
-function setPlantedAt(pots: Pot[], potId: number, plantedAt: number | null): Pot[] {
+function updatePot(pots: Pot[], potId: number, changes: Partial<Pot>): Pot[] {
     return pots.map((item) => {
         if (item.id !== potId) {
             return item
         }
-        return { ...item, plantedAt}
+        return { ...item, ...changes }
     })
 }
 
@@ -184,7 +185,7 @@ function buyPot(state: GameState): GameState {
     if (state.cash < cost) {
         return state
     }
-    const newPot: Pot = { id: state.pots.length + 1, plantedAt: null }
+    const newPot: Pot = { id: state.pots.length + 1, plantedAt: null, strain: 'classic' }
     return {
         ...state,
         cash: state.cash - cost,
@@ -282,7 +283,7 @@ function updateGardener(state: GameState, changes: Partial<StaffMember>): GameSt
 }
 
 function tendPot(state: GameState, potId: number, now: number) {
-    return plant(harvest(state, potId, now), potId, now)
+    return plant(harvest(state, potId, now), potId, now, 'classic')
 }
 
 function runGardener(state: GameState, now: number): GameState {

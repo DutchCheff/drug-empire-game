@@ -11,7 +11,8 @@ export function loadGame(now: number): GameState {
             return fresh
         }
         // Fields added in newer versions of the game get their starting value.
-        return { ...fresh, ...JSON.parse(saved) }
+        const loaded: GameState = { ...fresh, ...JSON.parse(saved)}
+        return { ...loaded, pots: loaded.pots.map((pot) => ({ ...pot, strain: pot.strain ?? 'classic' })) }
     } catch {
         return fresh
     }

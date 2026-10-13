@@ -54,6 +54,37 @@ hire dealers to sell, reinvest.
   - Dealer gear: e.g. bigger backpack (+capacity), burner phone (−arrest chance).
   - Grow gear: lamps (faster growth), fertilizer (bigger yield).
 
+## Strains
+Design: canvas board "Strains". Classic plus seven strains. Bloom buds are
+plain green for every strain (only the leaves differ); the colours show when
+ripe. Classic becomes duller than now: no frost, no sparkle.
+
+| Strain             | Type   | Grow | Yield | Price/g | Seed | Unlock  | Role             |
+|--------------------|--------|------|-------|---------|------|---------|------------------|
+| Classic            | –      | 30 s | 5 g   | $4      | $5   | start   | Starter          |
+| Northern Lights    | Indica | 24 s | 5 g   | $4      | $6   | $500    | Clicker (fast)   |
+| Blue Dream         | Hybrid | 36 s | 8 g   | $4      | $8   | $1,000  | Bulk             |
+| Sour Diesel        | Sativa | 40 s | 7 g   | $6      | $12  | $2,000  | All-rounder      |
+| OG Kush            | Hybrid | 30 s | 5 g   | $7      | $12  | $3,000  | Drop-in upgrade  |
+| Granddaddy Purple  | Indica | 45 s | 7 g   | $8      | $16  | $5,000  | Idle             |
+| Girl Scout Cookies | Hybrid | 50 s | 5 g   | $13     | $18  | $8,000  | Dealer favourite |
+| Gorilla Glue #4    | Hybrid | 60 s | 9 g   | $10     | $25  | $12,000 | Big idle         |
+
+- **Unlock**: pay once, in order, in the store's Strains tab.
+- **Roles** instead of a strict curve: dealer capacity caps grams, so pricey
+  grams earn more per trip; the gardener tends one pot at a time, so slow
+  strains suit him. Later: gardener speed upgrades, heat, hash press.
+- **Stash per strain**: dealer loads, the runner and "Sell 1 g" always take
+  the most expensive grams first. A dealer remembers the street value of
+  their load; payout = value × (1 − cut).
+- **Seeds per strain**: Classic 1 / 10 / 100, other strains 1 / 10 / 50;
+  10 at 20% off, 50 and 100 at 25% off. Dock pallets stay Classic for now.
+- **Planting by hand**: strain picker on the Seeds counter in the top bar;
+  clicking an empty pot plants the picked strain.
+- **Gardener**: priority list of unlocked strains (high to low) in his
+  modal; he plants the highest strain that has seeds in stock.
+- Old saves: pots, seeds and grams become Classic.
+
 ## Loading dock (first building expansion)
 Design: canvas board "Loading dock" and the van in "Full game · vision".
 The apartment's first expansion slot; the warehouse later gets a bigger dock.
@@ -132,10 +163,19 @@ plants harvested, loads sent, wages paid and the net cash change.
 - Dev panel (dev only): set cash and grams, ripen all pots.
 
 ## Roadmap (implementation, in order)
-1. Store expansions: strains, dealer gear, grow gear (lamp, fertilizer);
-   gardener settings for strain and fertilizer; fertilizer pallet on the dock.
-2. Dock auto-restock (runner unloads and reorders below a threshold).
-3. Later: police heat, bigger buildings (warehouse, see canvas), prestige.
+1. Strains (see above):
+   a. Strain data and types.
+   b. Pots remember their strain; seeds per strain; grow time and yield
+      per strain; strain picker for planting by hand.
+   c. Stash per strain; selling, dealer loads and runner take the most
+      expensive grams first.
+   d. Unlocks and seed bundles in the store's Strains tab.
+   e. Gardener priority list.
+   f. Plant art per strain.
+2. Store expansions: dealer gear, grow gear (lamp, fertilizer), fertilizer
+   pallet on the dock; gardener speed upgrades.
+3. Dock auto-restock (runner unloads and reorders below a threshold).
+4. Later: police heat, bigger buildings (warehouse, see canvas), prestige.
 
 Design happens in a separate chat on the canvas; boards marked "vision" or
 "Soon" are ideas until they're added to this roadmap.

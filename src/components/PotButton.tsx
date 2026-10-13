@@ -3,6 +3,7 @@ import { GrowthRing, ReadyRing } from '../art/plants/GrowthRing'
 import { HarvestPop } from '../art/plants/HarvestPop'
 import { Plant } from '../art/plants/Plant'
 import { TerracottaPot } from '../art/plants/Pot'
+import { getStrain } from '../game/strains'
 import { getProgress, getStage } from '../game/plants'
 import type { PlantStage, Pot } from '../game/types'
 
@@ -48,7 +49,7 @@ export function PotButton(props: PotButtonProps) {
                 {growing && <GrowthRing progress={progress} color={RING_COLORS[stage]} />}
                 {stage === 'ready' && <ReadyRing />}
                 {/* A new key restarts the animation on every harvest. */}
-                {harvestCount > 0 && <HarvestPop key={harvestCount} />}
+                {harvestCount > 0 && <HarvestPop key={harvestCount} grams={getStrain(props.pot.strain).yieldGrams} />}
             </svg>
         </button>
     )

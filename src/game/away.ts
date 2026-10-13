@@ -4,6 +4,7 @@ import { loadGame } from './save'
 import { wagesPerMinute } from './staff'
 import { gameReducer } from './state'
 import { dockStatus } from './dock'
+import { getStrain } from './strains'
 import type { GameState } from './types'
 
 export type AwaySummary = {
@@ -15,6 +16,7 @@ export type AwaySummary = {
     robbed: number
     arrested: number
     harvested: number
+    harvestedGrams: number
     loadsSent: number
     gramsSent: number
     wagesPaid: number
@@ -28,6 +30,7 @@ function record(summary: AwaySummary, before: GameState, after: GameState, now: 
     before.pots.forEach((pot, index) => {
         if (pot.plantedAt !== after.pots[index].plantedAt && getStage(pot, now) === 'ready') {
             summary.harvested += 1
+            summary.harvestedGrams += getStrain(pot.strain).yieldGrams
         }
     })
     after.dealers.forEach((dealer, index) => {
@@ -90,6 +93,7 @@ export function startGame(now: number) {
         robbed: 0,
         arrested: 0,
         harvested: 0,
+        harvestedGrams: 0,
         loadsSent: 0,
         gramsSent: 0,
         wagesPaid: 0,

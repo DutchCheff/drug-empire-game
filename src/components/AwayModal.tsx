@@ -1,4 +1,3 @@
-import { CONFIG } from '../game/config'
 import type { AwaySummary } from '../game/away'
 import { Modal } from './Modal'
 
@@ -28,7 +27,7 @@ function summaryLines(summary: AwaySummary) {
         lines.push({ text: `${plural(summary.arrested, 'dealer')} arrested`, color: 'text-danger' })
     }
     if (summary.harvested > 0) {
-        lines.push({ text: `Gardener harvested ${plural(summary.harvested, 'plant')}`, value: `+${summary.harvested * CONFIG.yieldGrams} g` })
+        lines.push({ text: `Gardener harvested ${plural(summary.harvested, 'plant')}`, value: `+${summary.harvestedGrams} g` })
     }
     if (summary.loadsSent > 0) {
         lines.push({ text: `Runner sent ${plural(summary.loadsSent, 'load')}`, value: `${summary.gramsSent} g` })

@@ -9,9 +9,6 @@ export const CONFIG = {
     { amount: 10, price: 40 },
     { amount: 100, price: 375 },
   ],
-  // seedling -> vegetative -> flowering
-  stageSeconds: 10,
-  yieldGrams: 5,
   pricePerGram: 4,
   dealer: {
     baseCost: 50,

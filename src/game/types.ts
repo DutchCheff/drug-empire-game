@@ -5,9 +5,32 @@ export type PlantStage =
   | 'flowering'
   | 'ready'
 
+export type StrainId =
+  | 'classic'
+  | 'northernLights'
+  | 'blueDream'
+  | 'sourDiesel'
+  | 'ogKush'
+  | 'granddaddyPurple'
+  | 'girlScoutCookies'
+  | 'gorillaGlue'
+
+export type Strain = {
+    id: StrainId
+    name: string
+    kind: 'Indica' | 'Sativa' | 'Hybrid' | null
+    role: string
+    growSeconds: number
+    yieldGrams: number
+    pricePerGram: number
+    seedPrice: number
+    unlockCost: number
+}
+
 export type Pot = {
     id: number
     plantedAt: number | null
+    strain: StrainId
 }
 
 

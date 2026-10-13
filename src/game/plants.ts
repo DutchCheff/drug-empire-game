@@ -1,4 +1,4 @@
-import { CONFIG } from "./config";
+import { getStrain } from "./strains";
 import type { PlantStage, Pot } from "./types";
 
 const GROWING: PlantStage[] = [
@@ -7,14 +7,16 @@ const GROWING: PlantStage[] = [
     'flowering',
 ]
 
-export const GROW_SECONDS = CONFIG.stageSeconds * GROWING.length
+export function growSeconds(pot: Pot) {
+    return getStrain(pot.strain).growSeconds
+}
 
 export function getProgress(pot: Pot, now: number) {
     if (pot.plantedAt === null) {
         return 0
     }
     const seconds = (now - pot.plantedAt) / 1000
-    return Math.min(seconds / GROW_SECONDS, 1)
+    return Math.min(seconds / growSeconds(pot), 1)
 }
 
 export function getStage(pot: Pot, now: number): PlantStage {
