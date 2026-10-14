@@ -43,21 +43,29 @@ export function StaffModal(props: StaffModalProps) {
             }
             onClose={props.onClose}
         >
-            <div className="flex items-center justify-between">
-                <span className="text-sm text-muted">Status</span>
-                <span className={`rounded-full border px-2.5 font-mono text-xs ${style.text} ${style.border}`}>
-                    {hired ? props.status : 'not hired'}
-                </span>
-            </div>
-
-            <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-0.5 text-sm">
-                {rows.map((row) => (
-                    <Fragment key={row[0]}>
-                        <dt className="text-muted">{row[0]}</dt>
-                        <dd className="text-right font-mono">{row[1]}</dd>
-                    </Fragment>
-                ))}
-            </dl>
+            {hired ? (
+                <div className="flex items-center justify-between gap-3">
+                    <span className={`rounded-full border px-2.5 font-mono text-xs ${style.text} ${style.border}`}>{props.status}</span>
+                    <span className="font-mono text-xs text-muted">
+                        ${config.wagePerMinute} / min · {info.rhythm}
+                    </span>
+                </div>
+            ) : (
+                <>
+                    <div className="flex items-center justify-between">
+                        <span className="text-sm text-muted">Status</span>
+                        <span className={`rounded-full border px-2.5 font-mono text-xs ${style.text} ${style.border}`}>not hired</span>
+                    </div>
+                    <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-0.5 text-sm">
+                        {rows.map((row) => (
+                            <Fragment key={row[0]}>
+                                <dt className="text-muted">{row[0]}</dt>
+                                <dd className="text-right font-mono">{row[1]}</dd>
+                            </Fragment>
+                        ))}
+                    </dl>
+                </>
+            )}
 
             {props.status === 'unpaid' && (
                 <p className="text-sm text-danger">Not enough cash for wages. Work resumes on the next payday you can afford.</p>

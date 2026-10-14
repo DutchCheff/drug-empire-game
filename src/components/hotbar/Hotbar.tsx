@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { CONFIG } from '../../game/config'
 import { hireCost } from '../../game/costs'
 import { findStaff, staffStatus, wagesPerMinute } from '../../game/staff'
-import type { Dealer, DealerCandidate, StaffMember, StaffRole, StrainCounts, StrainId } from '../../game/types'
+import type { Dealer, DealerCandidate, GardenerMode, StaffMember, StaffRole, StrainCounts, StrainId } from '../../game/types'
 import { DealerTile } from './DealerTile'
 import { HireModal } from './HireModal'
 import { SendModal } from './SendModal'
@@ -19,6 +19,8 @@ type HotbarProps = {
     stash: StrainCounts
     seeds: StrainCounts
     gardenerOrder: StrainId[]
+    gardenerMode: GardenerMode
+    unlocked: StrainId[]
     cash: number
     staff: StaffMember[]
     staffPaid: boolean
@@ -30,7 +32,9 @@ type HotbarProps = {
     onToggleStaff: (role: StaffRole) => void
     onMinStash: (grams: number) => void
     onFullLoadsOnly: (value: boolean) => void
-    onMoveStrain: (strain: StrainId, driection: -1 | 1) => void
+    onMoveStrain: (strain: StrainId, target: StrainId) => void
+    onGardenerMode: (mode: GardenerMode) => void
+    onOpenStore: () => void
 }
 
 export function Hotbar(props: HotbarProps) {
@@ -105,9 +109,16 @@ export function Hotbar(props: HotbarProps) {
                 >
                     {staffModal === 'gardener' ? (
                         <GardenerSettings
+                            mode={props.gardenerMode}
                             order={props.gardenerOrder}
                             seeds={props.seeds}
+                            unlocked={props.unlocked}
+                            onMode={props.onGardenerMode}
                             onMove={props.onMoveStrain}
+                            onOpenStore={() => {
+                                setStaffModal(null)
+                                props.onOpenStore()
+                            }}
                         />
                     ) : (
                         <RunnerSettings

@@ -81,8 +81,13 @@ ripe. Classic becomes duller than now: no frost, no sparkle.
   10 at 20% off, 50 and 100 at 25% off. Dock pallets stay Classic for now.
 - **Planting by hand**: strain picker on the Seeds counter in the top bar;
   clicking an empty pot plants the picked strain.
-- **Gardener**: priority list of unlocked strains (high to low) in his
-  modal; he plants the highest strain that has seeds in stock.
+- **Gardener** (canvas board "Gardener modal", option B): "What to plant"
+  with three modes. Best value (default): the strain with seeds that earns
+  the most per pot per second, (yield × price − seed) / grow time. Fastest:
+  shortest grow time with seeds. My order: his own priority list (drag, or
+  put first in one tap; strains without seeds fold away). A "Plants next"
+  card shows his pick; with no seeds a card links to the store. With only
+  Classic unlocked there is nothing to choose, so the modes are hidden.
 - Old saves: pots, seeds and grams become Classic.
 
 ## Loading dock (first building expansion)
@@ -160,22 +165,17 @@ plants harvested, loads sent, wages paid and the net cash change.
 - Loading dock: build slot, bulk order panel, van drive-in and drive-off,
   pallet unload, top-bar chip, dock toasts, offline arrival.
 - Trip toasts, "While you were away" summary, save in localStorage.
+- Strains: 8 strains with their own art, grow time, yield and price;
+  unlock in order in the store, seed bundles per strain, stash and seeds
+  per strain (most expensive grams sold first), strain picker in the top
+  bar, gardener planting modes (Best value / Fastest / My order).
 - Dev panel (dev only): set cash and grams, ripen all pots.
 
 ## Roadmap (implementation, in order)
-1. Strains (see above):
-   a. Strain data and types.
-   b. Pots remember their strain; seeds per strain; grow time and yield
-      per strain; strain picker for planting by hand.
-   c. Stash per strain; selling, dealer loads and runner take the most
-      expensive grams first.
-   d. Unlocks and seed bundles in the store's Strains tab.
-   e. Gardener priority list.
-   f. Plant art per strain.
-2. Store expansions: dealer gear, grow gear (lamp, fertilizer), fertilizer
+1. Store expansions: dealer gear, grow gear (lamp, fertilizer), fertilizer
    pallet on the dock; gardener speed upgrades.
-3. Dock auto-restock (runner unloads and reorders below a threshold).
-4. Later: police heat, bigger buildings (warehouse, see canvas), prestige.
+2. Dock auto-restock (runner unloads and reorders below a threshold).
+3. Later: police heat, bigger buildings (warehouse, see canvas), prestige.
 
 Design happens in a separate chat on the canvas; boards marked "vision" or
 "Soon" are ideas until they're added to this roadmap.

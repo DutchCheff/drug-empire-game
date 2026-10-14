@@ -8,6 +8,8 @@ type BudProps = {
     y: number
     radius: number
     colors: BudColors
+    frost: number
+    pistils: number
     seed: number
 }
 
@@ -25,7 +27,7 @@ export function Bud(props: BudProps) {
 
     // Pistils: the little curled orange hairs on the bud.
     const pistils = []
-    const pistilCount = Math.ceil(radius * 1.4)
+    const pistilCount = Math.ceil(radius * props.pistils)
     for (let index = 0; index < pistilCount; index++) {
         const angle = random() * 360
         const start = radius * (0.2 + random() * 0.55)
@@ -37,12 +39,10 @@ export function Bud(props: BudProps) {
     }
 
     const frost = []
-    if (props.colors.frost) {
-        const frostCount = Math.ceil(radius * 2.4)
-        for (let index = 0; index < frostCount; index++) {
-            const point = polar(random() * 360, Math.sqrt(random()) * radius * 1.05)
-            frost.push({ x: point.x, y: point.y, radius: 0.3 + random() * 0.35 })
-        }
+    const frostCount = Math.ceil(radius * props.frost)
+    for (let index = 0; index < frostCount; index++) {
+        const point = polar(random() * 360, Math.sqrt(random()) * radius * 1.05)
+        frost.push({ x: point.x, y: point.y, radius: 0.3 + random() * 0.35 })
     }
 
     return (

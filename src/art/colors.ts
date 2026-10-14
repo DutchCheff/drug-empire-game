@@ -16,28 +16,15 @@ export type BudColors = {
     light: string
     pistil: string
     sugar: string
-    frost: boolean
 }
 
-export const BUDS: Record<'flowering' | 'ripe', BudColors> = {
-    flowering: {
-        main: '#A9C86B',
-        shade: '#8DAE52',
-        light: '#C3DC86',
-        pistil: '#E2873B',
-        sugar: '#5E9A40',
-        frost: false,
-    },
-    ripe: {
-        main: '#D2DFA4',
-        shade: '#B3C784',
-        light: '#E9F0CC',
-        pistil: '#B85E2A',
-        sugar: '#6FA14C',
-        frost: true,
-    },
+export function mix(from: string, to: string, share: number) {
+    const parse = (hex: string) => [1, 3, 5].map((index) => parseInt(hex.slice(index, index + 2), 16))
+    const start = parse(from)
+    const end = parse(to)
+    const channels = start.map((value, index) => Math.round(value + (end[index] - value) * share))
+    return '#' + channels.map((value) => value.toString(16).padStart(2, '0')).join('').toUpperCase()
 }
-
 
 export const ROOM = {
     outside: '#151311',

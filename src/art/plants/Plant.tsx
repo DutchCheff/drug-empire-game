@@ -1,9 +1,10 @@
-import type { PlantStage } from '../../game/types'
+import type { PlantStage, StrainId } from '../../game/types'
 import { Bud } from './Bud'
-import { BUDS, PLANT } from '../colors'
+import { mix, PLANT } from '../colors'
 import { polar } from '../geometry'
 import { FanLeaf, LeafRing } from './Leaf'
 import { Sparkle } from './Sparkle'
+import { FLOWERING_BUD, SPARKLE_SPOTS, STRAIN_LOOKS, type StrainLook } from './strainLooks'
 
 export function Seedling() {
     return (
@@ -17,80 +18,140 @@ export function Seedling() {
     )
 }
 
-export function Vegetative() {
+type VegetativeProps = {
+    look: StrainLook
+}
+
+export function Vegetative(props: VegetativeProps) {
+    const look = props.look
+    const scale = look.outerLength / 30
+    const leafStyle = { width: look.leafWidth, rib: look.rib, stem: look.stem }
+
     return (
         <g>
-            <LeafRing count={6} offset={20} distance={9} length={26} leaflets={7} fills={[PLANT.leafDark]} jitter={10} seed={3} />
-            <LeafRing count={5} offset={56} distance={5} length={19} leaflets={5} fills={[PLANT.leafMid]} jitter={12} seed={7} />
-            <LeafRing count={3} offset={0} distance={1.5} length={9} leaflets={3} fills={[PLANT.leafNew]} jitter={0} seed={9} />
-            <circle r={2} fill={PLANT.stem} />
+            <LeafRing
+                {...leafStyle}
+                count={6}
+                offset={20}
+                distance={9}
+                length={26 * scale}
+                leaflets={look.leaflets}
+                fills={[look.leafDark]}
+                jitter={10}
+                seed={3}
+            />
+            <LeafRing
+                {...leafStyle}
+                count={5}
+                offset={56}
+                distance={5}
+                length={19 * scale}
+                leaflets={look.leaflets === 7 ? 5 : 3}
+                fills={[look.leafMid]}
+                jitter={12}
+                seed={7}
+            />
+            <LeafRing
+                {...leafStyle}
+                count={3}
+                offset={0}
+                distance={1.5}
+                length={9}
+                leaflets={3}
+                fills={[mix(look.leafMid, '#B8E07A', 0.5)]}
+                jitter={0}
+                seed={9}
+            />
+            <circle r={2} fill={look.stem} />
         </g>
     )
 }
 
-const RIPE_OUTER_FILLS = [
-    PLANT.leafLate,
-    PLANT.leafLate,
-    PLANT.leafYellow,
-    PLANT.leafLate,
-    PLANT.leafLate,
-    PLANT.leafLate,
-    PLANT.leafYellow,
-]
-
-const SIDE_BUD_ANGLES = [10, 70, 130, 190, 250, 310]
-
 type FloweringProps = {
+    look: StrainLook
     ripe: boolean
 }
 
 export function Flowering(props: FloweringProps) {
-    const colors = props.ripe ? BUDS.ripe : BUDS.flowering
-    const outerFills = props.ripe ? RIPE_OUTER_FILLS : [PLANT.leafDark]
-    const middleFill = props.ripe ? PLANT.leafLateMid : PLANT.leafMid
-    const sideBudRadius = props.ripe ? 5.2 : 4.4
+    const look = props.look
+    const scale = look.outerLength / 30
+    const leafStyle = { width: look.leafWidth, rib: look.rib, stem: look.stem }
+    const late = mix(look.leafDark, '#000000', 0.08)
+    const colors = props.ripe ? look.bud : FLOWERING_BUD
+    const outerFills = props.ripe ? [late, late, look.accent, late, late, late, look.accent] : [look.leafDark]
+    const middleFill = props.ripe ? mix(look.leafMid, '#000000', 0.06) : look.leafMid
+    const sideRadius = props.ripe ? look.sideRadius : look.sideRadius * 0.85
+    const centerRadius = props.ripe ? look.centerRadius : look.centerRadius * 0.85
+    const frost = props.ripe ? look.frost : 0
+    const sideBuds = []
+    for (let index = 0; index < look.sideCount; index++) {
+        sideBuds.push(polar(10 + (index * 360) / look.sideCount, look.sideDistance))
+    }
 
     return (
         <g>
-            <LeafRing count={7} offset={10} distance={12} length={30} leaflets={7} fills={outerFills} jitter={8} seed={11} />
-            <LeafRing count={6} offset={40} distance={7} length={21} leaflets={5} fills={[middleFill]} jitter={10} seed={13} />
-            {SIDE_BUD_ANGLES.map((angle, index) => {
-                const point = polar(angle, 18)
-                return <Bud key={angle} x={point.x} y={point.y} radius={sideBudRadius} colors={colors} seed={20 + index} />
-            })}
-            <Bud x={0} y={0} radius={props.ripe ? 9.5 : 8} colors={colors} seed={40} />
-        </g>
-    )
-}
-
-function Sparkles() {
-    return (
-        <g>
-            <Sparkle x={-14} y={-20} size={4} delay={0} />
-            <Sparkle x={20} y={-6} size={3} delay={0.7} />
-            <Sparkle x={-6} y={22} size={3.4} delay={1.3} />
-            <Sparkle x={8} y={-2} size={2.6} delay={1.9} />
+            <LeafRing
+                {...leafStyle}
+                count={look.outerCount}
+                offset={10}
+                distance={12}
+                length={look.outerLength}
+                leaflets={look.leaflets}
+                fills={outerFills}
+                jitter={8}
+                seed={11}
+            />
+            <LeafRing
+                {...leafStyle}
+                count={6}
+                offset={40}
+                distance={7}
+                length={21 * scale}
+                leaflets={look.leaflets === 7 ? 5 : 3}
+                fills={[middleFill]}
+                jitter={10}
+                seed={13}
+            />
+            {sideBuds.map((point, index) => (
+                <Bud
+                    key={index}
+                    x={point.x}
+                    y={point.y}
+                    radius={sideRadius}
+                    colors={colors}
+                    frost={frost}
+                    pistils={look.pistils}
+                    seed={20 + index}
+                />
+            ))}
+            <Bud x={0} y={0} radius={centerRadius} colors={colors} frost={frost} pistils={look.pistils} seed={40} />
         </g>
     )
 }
 
 type PlantProps = {
     stage: PlantStage
+    strain: StrainId
 }
 
 export function Plant(props: PlantProps) {
     if (props.stage === 'empty') {
         return null
     }
+    const look = STRAIN_LOOKS[props.strain]
+
     return (
         <g>
             <g className="origin-center transform-fill animate-sway motion-reduce:animate-none">
                 {props.stage === 'seedling' && <Seedling />}
-                {props.stage === 'vegetative' && <Vegetative />}
-                {props.stage === 'flowering' && <Flowering ripe={false} />}
-                {props.stage === 'ready' && <Flowering ripe={true} />}
+                {props.stage === 'vegetative' && <Vegetative look={look} />}
+                {props.stage === 'flowering' && <Flowering look={look} ripe={false} />}
+                {props.stage === 'ready' && <Flowering look={look} ripe={true} />}
             </g>
-            {props.stage === 'ready' && <Sparkles />}
+            {props.stage === 'ready' &&
+                SPARKLE_SPOTS.slice(0, look.sparkles).map((spot, index) => (
+                    <Sparkle key={index} x={spot.x} y={spot.y} size={spot.size} delay={index * 0.6} />
+                ))}
         </g>
     )
 }

@@ -35,10 +35,12 @@ type FanLeafProps = {
     leaflets: LeafletCount
     fill: string
     width?: number
+    rib?: string
 }
 
 export function FanLeaf(props: FanLeafProps) {
     const width = props.width ?? 0.19
+    const rib = props.rib ?? PLANT.rib
     return (
         <g transform={`translate(${props.x} ${props.y}) rotate(${props.angle})`}>
             {LAYOUTS[props.leaflets].map((leaflet, index) => {
@@ -48,13 +50,13 @@ export function FanLeaf(props: FanLeafProps) {
                         <path
                             d={leafletPath(length, length * width)}
                             fill={props.fill}
-                            stroke={PLANT.rib}
+                            stroke={rib}
                             strokeWidth={0.5}
                             strokeLinejoin="round"
                         />
                         <path
                             d={`M0 ${-length * 0.08} L0 ${-length * 0.86}`}
-                            stroke={PLANT.rib}
+                            stroke={rib}
                             strokeWidth={Math.max(0.45, length * 0.035)}
                             strokeLinecap="round"
                         />
@@ -74,6 +76,9 @@ type LeafRingProps = {
     fills: string[]
     jitter: number
     seed: number
+    width?: number
+    rib?: string
+    stem?: string
 }
 
 export function LeafRing(props: LeafRingProps) {
@@ -97,7 +102,7 @@ export function LeafRing(props: LeafRingProps) {
                         y1={0}
                         x2={leaf.base.x}
                         y2={leaf.base.y}
-                        stroke={PLANT.stem}
+                        stroke={props.stem ?? PLANT.stem}
                         strokeWidth={1.6}
                         strokeLinecap="round"
                     />
@@ -108,6 +113,8 @@ export function LeafRing(props: LeafRingProps) {
                         length={leaf.length}
                         leaflets={props.leaflets}
                         fill={leaf.fill}
+                        width={props.width}
+                        rib={props.rib}
                     />
                 </g>
             ))}

@@ -1,5 +1,6 @@
 import { CONFIG } from "./config";
-import type { GameState, StaffMember, StaffRole } from "./types";
+import { STRAINS } from './strains'
+import type { GameState, GardenerMode, StaffMember, StaffRole, Strain, StrainCounts, StrainId } from "./types";
 
 const PAY_MS = CONFIG.staff.payEverySeconds * 1000
 
@@ -44,4 +45,26 @@ export function payWages(state: GameState, now: number): GameState {
         payday += PAY_MS
     }
     return { ...state, cash, staffPaid: paid, nextPayday: payday }
+}
+
+export function profitPerSecond(strain: Strain) {
+    return (strain.yieldGrams * strain.pricePerGram - strain.seedPrice) / strain.growSeconds
+}
+
+function plantsBefore(strain: Strain, choice: Strain, mode: GardenerMode) {
+    if (mode === 'fastest' && strain.growSeconds !== choice.growSeconds) {
+        return strain.growSeconds < choice.growSeconds
+    }
+    return profitPerSecond(strain) > profitPerSecond(choice)
+}
+
+export function gardenerPick(mode: GardenerMode, order: StrainId[], seeds: StrainCounts): StrainId | undefined {
+    if (mode === 'order') {
+        return order.find((strain) => seeds[strain] > 0)
+    }
+    const stocked = STRAINS.filter((strain) => seeds[strain.id] > 0)
+    if (stocked.length === 0) {
+        return undefined
+    }
+    return stocked.reduce((choice, strain) => (plantsBefore(strain, choice, mode) ? strain : choice)).id
 }

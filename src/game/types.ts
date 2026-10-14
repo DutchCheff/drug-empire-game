@@ -29,6 +29,8 @@ export type Strain = {
 
 export type StrainCounts = Record<StrainId, number>
 
+export type GardenerMode = 'value' | 'fastest' | 'order'
+
 export type Pot = {
     id: number
     plantedAt: number | null
@@ -103,6 +105,7 @@ export type GameState = {
     plantStrain: StrainId
     unlocked: StrainId[]
     gardenerOrder: StrainId[]
+    gardenerMode: GardenerMode
     pots: Pot[]
     dealers: Dealer[]
     candidates: DealerCandidate[]

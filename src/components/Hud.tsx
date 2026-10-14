@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import { CashIcon, GramsIcon, SeedIcon, VanIcon } from '../art/icons'
 import { dockStatus, formatClock, secondsLeft } from '../game/dock'
 import { StoreModal } from './StoreModal'
@@ -36,7 +36,7 @@ function SeedPicker(props: SeedPickerProps) {
             <select
                 value={props.picked}
                 onChange={(event) => props.onPick(event.target.value as StrainId)}
-                className="cursor-pointer bg-ground font-mono text-lg text-paper"
+                className="field-sizing-content cursor-pointer bg-ground font-mono text-lg text-paper"
             >
                 {STRAINS.filter((strain) => props.unlocked.includes(strain.id)).map((strain) => (
                     <option key={strain.id} value={strain.id}>
@@ -92,12 +92,13 @@ type HudProps = {
     unlocked: StrainId[]
     onBuySeeds: (strain: StrainId, bundleIndex: number) => void
     onUnlock: (strain: StrainId) => void
+    storeOpen: boolean
+    onStoreOpen: (open: boolean) => void
     onUnload: () => void
     onPickStrain: (strain: StrainId) => void
 }
 
 export function Hud(props: HudProps) {
-    const [storeOpen, setStoreOpen] = useState(false)
     const canSell = props.grams > 0
     const buttonClass = 'h-11 cursor-pointer rounded-lg px-4 font-semibold disabled:cursor-not-allowed disabled:opacity-40'
 
@@ -114,7 +115,7 @@ export function Hud(props: HudProps) {
                 <div className="flex flex-wrap items-center gap-3">
                     <button
                         type="button"
-                        onClick={() => setStoreOpen(true)}
+                        onClick={() => props.onStoreOpen(true)}
                         className={`${buttonClass} border border-edge bg-ground text-paper`}
                     >
                         Store
@@ -124,14 +125,14 @@ export function Hud(props: HudProps) {
                     </button>
                 </div>
             </header>
-            {storeOpen && (
+            {props.storeOpen && (
                 <StoreModal
                     cash={props.cash}
                     seeds={props.seeds}
                     unlocked={props.unlocked}
                     onBuySeeds={props.onBuySeeds}
                     onUnlock={props.onUnlock}
-                    onClose={() => setStoreOpen(false)}
+                    onClose={() => props.onStoreOpen(false)}
                 />
             )}
         </>

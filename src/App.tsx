@@ -18,6 +18,7 @@ function App() {
   const [start] = useState(() => startGame(Date.now()))
   const [state, dispatch] = useReducer(gameReducer, start.state)
   const [awaySummary, setAwaySummary] = useState(start.summary)
+  const [storeOpen, setStoreOpen] = useState(false)
 
   useEffect(() => {
     saveGame({ ...state, savedAt: Date.now() })
@@ -60,6 +61,8 @@ function App() {
         unlocked={state.unlocked}
         onBuySeeds={(strain, bundleIndex) => dispatch({ type: 'buySeeds', strain, bundleIndex })}
         onUnlock={(strain) => dispatch({ type: 'unlockStrain', strain })}
+        storeOpen={storeOpen}
+        onStoreOpen={setStoreOpen}
         onUnload={() => dispatch({ type: 'unloadPallet', now })}
         onPickStrain={(strain) => dispatch({ type: 'pickStrain', strain })}
       />
@@ -88,8 +91,10 @@ function App() {
         candidates={state.candidates}
         now={now}
         stash={state.stash}
-        seeds={state.stash}
+        seeds={state.seeds}
         gardenerOrder={state.gardenerOrder}
+        gardenerMode={state.gardenerMode}
+        unlocked={state.unlocked}
         cash={state.cash}
         staff={state.staff}
         staffPaid={state.staffPaid}
@@ -101,7 +106,9 @@ function App() {
         onToggleStaff={(role) => dispatch({ type: 'toggleStaff', role })}
         onMinStash={(grams) => dispatch({ type: 'setMinStash', grams })}
         onFullLoadsOnly={(value) => dispatch({ type: 'setFullLoadsOnly', value })}
-        onMoveStrain={(strain, direction) => dispatch({ type: 'moveStrain', strain, direction })}
+        onMoveStrain={(strain, target) => dispatch({ type: 'moveStrain', strain, target })}
+        onGardenerMode={(mode) => dispatch({ type: 'setGardenerMode', mode })}
+        onOpenStore={() => setStoreOpen(true)}
       />
 
       {awaySummary !== null && <AwayModal summary={awaySummary} onClose={() => setAwaySummary(null)} />}

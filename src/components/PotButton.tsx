@@ -45,7 +45,7 @@ export function PotButton(props: PotButtonProps) {
         >
             <svg viewBox="-56 -56 112 112" className="h-full w-full overflow-visible">
                 <TerracottaPot />
-                <Plant stage={stage} />
+                <Plant stage={stage} strain={props.pot.strain} />
                 {growing && <GrowthRing progress={progress} color={RING_COLORS[stage]} />}
                 {stage === 'ready' && <ReadyRing />}
                 {/* A new key restarts the animation on every harvest. */}

@@ -3,10 +3,10 @@ import { makeRoller } from '../lib/random'
 import { hireCost, nextPotCost } from './costs'
 import { createDealer, rollCandidates, updateDealers } from './dealers'
 import { arrivalAt } from './dock'
-import { findStaff, payWages } from "./staff";
+import { findStaff, gardenerPick, payWages } from "./staff";
 import { getStage, growSeconds } from "./plants";
 import { emptyCounts, getStrain, takeGrams, totalCount, nextLocked, seedBundles } from "./strains";
-import type { Dealer, GameState, Pot, StaffMember, StaffRole, StrainId } from "./types";
+import type { Dealer, GameState, GardenerMode, Pot, StaffMember, StaffRole, StrainId } from "./types";
 
 export type GameAction =
     | { type: 'plant'; potId: number; strain: StrainId; now: number }
@@ -29,7 +29,8 @@ export type GameAction =
     | { type: 'unloadPallet'; now: number }
     | { type: 'pickStrain'; strain: StrainId }
     | { type: 'unlockStrain'; strain: StrainId }
-    | { type: 'moveStrain'; strain: StrainId, direction: -1 | 1}
+    | { type: 'moveStrain'; strain: StrainId; target: StrainId }
+    | { type: 'setGardenerMode'; mode: GardenerMode }
 
 export function createInitialState(now: number): GameState {
     const pots: Pot[] = []
@@ -44,6 +45,7 @@ export function createInitialState(now: number): GameState {
         plantStrain: 'classic',
         unlocked: ['classic'],
         gardenerOrder: ['classic'],
+        gardenerMode: 'value',
         pots,
         dealers: [],
         candidates: rollCandidates(roller.roll),
@@ -124,7 +126,10 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
             return unlockStrain(state, action.strain)
         }
         case 'moveStrain': {
-            return moveStrain(state, action.strain, action.direction)
+            return moveStrain(state, action.strain, action.target)
+        }
+        case 'setGardenerMode': {
+            return { ...state, gardenerMode: action.mode }
         }
     }
 }
@@ -284,15 +289,14 @@ function unlockStrain(state: GameState, strain: StrainId): GameState {
     }
 }
 
-function moveStrain(state: GameState, strain: StrainId, direction: -1 | 1): GameState {
-    const order = [...state.gardenerOrder]
-    const index = order.indexOf(strain)
-    const target = index + direction
-    if (index === -1 || target < 0 || target >= order.length) {
+function moveStrain(state: GameState, strain: StrainId, target: StrainId): GameState {
+    const from = state.gardenerOrder.indexOf(strain)
+    const to = state.gardenerOrder.indexOf(target)
+    if (from === -1 || to === -1 || from === to) {
         return state
     }
-    order[index] = order[target]
-    order[target] = strain
+    const order = state.gardenerOrder.filter((item) => item !== strain)
+    order.splice(to, 0, strain)
     return { ...state, gardenerOrder: order }
 }
 
@@ -327,7 +331,7 @@ function updateGardener(state: GameState, changes: Partial<StaffMember>): GameSt
 }
 
 function gardenerStrain(state: GameState) {
-    return state.gardenerOrder.find((strain) => state.seeds[strain] > 0)
+    return gardenerPick(state.gardenerMode, state.gardenerOrder, state.seeds)
 }
 
 function tendPot(state: GameState, potId: number, now: number) {
