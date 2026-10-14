@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { CONFIG } from '../../game/config'
 import { hireCost } from '../../game/costs'
 import { findStaff, staffStatus, wagesPerMinute } from '../../game/staff'
-import type { Dealer, DealerCandidate, StaffMember, StaffRole } from '../../game/types'
+import type { Dealer, DealerCandidate, StaffMember, StaffRole, StrainCounts, StrainId } from '../../game/types'
 import { DealerTile } from './DealerTile'
 import { HireModal } from './HireModal'
 import { SendModal } from './SendModal'
@@ -16,7 +16,9 @@ type HotbarProps = {
     dealers: Dealer[]
     candidates: DealerCandidate[]
     now: number
-    stash: number
+    stash: StrainCounts
+    seeds: StrainCounts
+    gardenerOrder: StrainId[]
     cash: number
     staff: StaffMember[]
     staffPaid: boolean
@@ -28,6 +30,7 @@ type HotbarProps = {
     onToggleStaff: (role: StaffRole) => void
     onMinStash: (grams: number) => void
     onFullLoadsOnly: (value: boolean) => void
+    onMoveStrain: (strain: StrainId, driection: -1 | 1) => void
 }
 
 export function Hotbar(props: HotbarProps) {
@@ -101,7 +104,11 @@ export function Hotbar(props: HotbarProps) {
                     onClose={() => setStaffModal(null)}
                 >
                     {staffModal === 'gardener' ? (
-                        <GardenerSettings />
+                        <GardenerSettings
+                            order={props.gardenerOrder}
+                            seeds={props.seeds}
+                            onMove={props.onMoveStrain}
+                        />
                     ) : (
                         <RunnerSettings
                             minStash={props.minStash}

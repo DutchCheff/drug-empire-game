@@ -11,6 +11,7 @@ import { Hud } from "./components/Hud";
 import { AwayModal } from "./components/AwayModal";
 import { TripToasts } from './components/TripToasts'
 import { DevPanel } from './components/DevPanel'
+import { sellPrice, totalCount } from "./game/strains";
 
 function App() {
   const now = useNow()
@@ -41,20 +42,26 @@ function App() {
   const potCost = nextPotCost(state.pots.length)
   const potsFull = state.pots.length >= CONFIG.maxPots
   const canBuyPot = !potsFull && state.cash >= potCost
-  const canPlant = state.seedStock > 0
+  const canPlant = state.seeds[state.plantStrain] > 0
+  const stashGrams = totalCount(state.stash)
 
   return (
 
     <main className="flex min-h-screen flex-col items-center justify-center gap-6 p-6">
       <Hud
         cash={state.cash}
-        grams={state.grams}
+        grams={stashGrams}
+        sellPrice={sellPrice(state.stash)}
         onSell={() => dispatch({ type: 'sell', grams: 1 })}
-        seedStock={state.seedStock}
+        seeds={state.seeds}
+        plantStrain={state.plantStrain}
         dock={state.dock}
         now={now}
-        onBuySeeds={(offerIndex) => dispatch({ type: 'buySeeds', offerIndex })}
+        unlocked={state.unlocked}
+        onBuySeeds={(strain, bundleIndex) => dispatch({ type: 'buySeeds', strain, bundleIndex })}
+        onUnlock={(strain) => dispatch({ type: 'unlockStrain', strain })}
         onUnload={() => dispatch({ type: 'unloadPallet', now })}
+        onPickStrain={(strain) => dispatch({ type: 'pickStrain', strain })}
       />
 
       <Room
@@ -62,7 +69,7 @@ function App() {
         dealers={state.dealers}
         staff={state.staff}
         dock={state.dock}
-        stash={state.grams}
+        stash={stashGrams}
         cash={state.cash}
         now={now}
         potCost={potCost}
@@ -80,7 +87,9 @@ function App() {
         dealers={state.dealers}
         candidates={state.candidates}
         now={now}
-        stash={state.grams}
+        stash={state.stash}
+        seeds={state.stash}
+        gardenerOrder={state.gardenerOrder}
         cash={state.cash}
         staff={state.staff}
         staffPaid={state.staffPaid}
@@ -92,6 +101,7 @@ function App() {
         onToggleStaff={(role) => dispatch({ type: 'toggleStaff', role })}
         onMinStash={(grams) => dispatch({ type: 'setMinStash', grams })}
         onFullLoadsOnly={(value) => dispatch({ type: 'setFullLoadsOnly', value })}
+        onMoveStrain={(strain, direction) => dispatch({ type: 'moveStrain', strain, direction })}
       />
 
       {awaySummary !== null && <AwayModal summary={awaySummary} onClose={() => setAwaySummary(null)} />}
@@ -99,7 +109,7 @@ function App() {
       {import.meta.env.DEV && (
         <DevPanel
           cash={state.cash}
-          grams={state.grams}
+          grams={stashGrams}
           onSet={(cash, grams) => dispatch({ type: 'devSet', cash, grams })}
           onRipenPots={() => dispatch({ type: 'devRipenPots', now })}
         />

@@ -5,7 +5,7 @@ import { createDealer, rollCandidates, updateDealers } from './dealers'
 import { arrivalAt } from './dock'
 import { findStaff, payWages } from "./staff";
 import { getStage, growSeconds } from "./plants";
-import { getStrain } from "./strains";
+import { emptyCounts, getStrain, takeGrams, totalCount, nextLocked, seedBundles } from "./strains";
 import type { Dealer, GameState, Pot, StaffMember, StaffRole, StrainId } from "./types";
 
 export type GameAction =
@@ -19,7 +19,7 @@ export type GameAction =
     | { type: 'tick'; now: number }
     | { type: 'devSet'; cash: number; grams: number }
     | { type: 'devRipenPots'; now: number }
-    | { type: 'buySeeds'; offerIndex: number }
+    | { type: 'buySeeds'; strain: StrainId; bundleIndex: number }
     | { type: 'hireStaff'; role: StaffRole; now: number }
     | { type: 'toggleStaff'; role: StaffRole }
     | { type: 'setMinStash'; grams: number }
@@ -27,6 +27,9 @@ export type GameAction =
     | { type: 'buildDock' }
     | { type: 'orderPallet'; offerIndex: number; now: number }
     | { type: 'unloadPallet'; now: number }
+    | { type: 'pickStrain'; strain: StrainId }
+    | { type: 'unlockStrain'; strain: StrainId }
+    | { type: 'moveStrain'; strain: StrainId, direction: -1 | 1}
 
 export function createInitialState(now: number): GameState {
     const pots: Pot[] = []
@@ -36,8 +39,11 @@ export function createInitialState(now: number): GameState {
     const roller = makeRoller(now)
     return {
         cash: CONFIG.startCash,
-        grams: 0,
-        seedStock: CONFIG.startSeeds,
+        stash: emptyCounts(),
+        seeds: { ...emptyCounts(), classic: CONFIG.startSeeds },
+        plantStrain: 'classic',
+        unlocked: ['classic'],
+        gardenerOrder: ['classic'],
         pots,
         dealers: [],
         candidates: rollCandidates(roller.roll),
@@ -79,7 +85,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
             return tick(state, action.now)
         }
         case 'devSet': {
-            return { ...state, cash: Math.max(0, action.cash), grams: Math.max(0, Math.floor(action.grams)) }
+            return { ...state, cash: Math.max(0, action.cash), stash: { ...emptyCounts(), classic: Math.max(0, Math.floor(action.grams))} }
         }
         case 'devRipenPots': {
             return {
@@ -88,7 +94,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
             }
         }
         case "buySeeds": {
-            return buySeeds(state, action.offerIndex)
+            return buySeeds(state, action.strain, action.bundleIndex)
         }
         case 'hireStaff': {
             return hireStaff(state, action.role, action.now)
@@ -111,6 +117,15 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         case 'unloadPallet': {
             return unloadPallet(state, action.now)
         }
+        case 'pickStrain': {
+            return { ...state, plantStrain: action.strain }
+        }
+        case 'unlockStrain': {
+            return unlockStrain(state, action.strain)
+        }
+        case 'moveStrain': {
+            return moveStrain(state, action.strain, action.direction)
+        }
     }
 }
 
@@ -119,12 +134,12 @@ function plant(state: GameState, potId: number, now: number, strain: StrainId): 
     if (pot === undefined || pot.plantedAt !== null) {
         return state
     }
-    if (state.seedStock < 1) {
+    if (state.seeds[strain] < 1) {
         return state
     }
     return {
         ...state,
-        seedStock: state.seedStock - 1,
+        seeds: { ...state.seeds, [strain]: state.seeds[strain] - 1},
         pots: updatePot(state.pots, potId, { plantedAt: now, strain}),
     }
 }
@@ -136,7 +151,7 @@ function harvest(state: GameState, potId: number, now: number,): GameState {
     }
     return {
         ...state,
-        grams: state.grams + getStrain(pot.strain).yieldGrams,
+        stash: { ...state.stash, [pot.strain]: state.stash[pot.strain] + getStrain(pot.strain).yieldGrams },
         pots: updatePot(state.pots, potId, {plantedAt: null}),
     }
 }
@@ -148,7 +163,7 @@ function clickPot(state: GameState, potId: number, now: number): GameState {
     }
     const stage = getStage(pot, now)
     if (stage === 'empty') {
-        return plant(state, potId, now, 'classic')
+        return plant(state, potId, now, state.plantStrain)
     }
     if (stage === 'ready') {
         return harvest(state, potId, now)
@@ -157,14 +172,14 @@ function clickPot(state: GameState, potId: number, now: number): GameState {
 }
 
 function sell(state: GameState, grams: number): GameState {
-    const sold = Math.min(grams, state.grams)
-    if (sold <= 0) {
+    const sold = takeGrams(state.stash, grams)
+    if (sold.grams <= 0) {
         return state
     }
     return {
         ...state,
-        grams: state.grams - sold,
-        cash: state.cash + sold * CONFIG.pricePerGram
+        stash: sold.stash,
+        cash: state.cash + sold.value,
     }
 }
 
@@ -217,18 +232,18 @@ function sendDealer(state: GameState, dealerId: number, grams: number, now: numb
     if (dealer === undefined || dealer.status !== 'idle') {
         return state
     }
-    const amount = Math.min(Math.floor(grams), dealer.stats.capacity, state.grams)
-    if (amount < 1) {
+    const load = takeGrams(state.stash, Math.min(Math.floor(grams), dealer.stats.capacity))
+    if (load.grams < 1) {
         return state
     }
     return {
         ...state,
-        grams: state.grams - amount,
+        stash: load.stash,
         dealers: state.dealers.map((item): Dealer => {
             if (item.id !== dealerId) {
                 return item
             }
-            return { ...item, status: 'out', statusSince: now, carrying: amount }
+            return { ...item, status: 'out', statusSince: now, carrying: load.grams, carryingValue: load.value }
         }),
     }
 }
@@ -244,12 +259,41 @@ function tick(state: GameState, now: number): GameState {
     return runRunner(next, now)
 }
 
-function buySeeds(state: GameState, offerIndex: number):GameState {
-    const offer = CONFIG.seedOffers[offerIndex]
-    if (offer === undefined || state.cash < offer.price) {
+function buySeeds(state: GameState, strain: StrainId, bundleIndex: number): GameState {
+    const bundle = seedBundles(strain)[bundleIndex]
+    if (bundle === undefined || !state.unlocked.includes(strain) || state.cash < bundle.price) {
         return state
     }
-    return { ...state, cash: state.cash - offer.price, seedStock: state.seedStock + offer.amount}
+    return {
+        ...state,
+        cash: state.cash - bundle.price,
+        seeds: { ...state.seeds, [strain]: state.seeds[strain] + bundle.amount }
+    }
+}
+
+function unlockStrain(state: GameState, strain: StrainId): GameState {
+    const next =  nextLocked(state.unlocked)
+    if (next === undefined || next.id !== strain || state.cash < next.unlockCost) {
+        return state
+    }
+    return {
+        ...state,
+        cash: state.cash - next.unlockCost,
+        unlocked: [...state.unlocked, strain],
+        gardenerOrder: [strain, ...state.gardenerOrder],
+    }
+}
+
+function moveStrain(state: GameState, strain: StrainId, direction: -1 | 1): GameState {
+    const order = [...state.gardenerOrder]
+    const index = order.indexOf(strain)
+    const target = index + direction
+    if (index === -1 || target < 0 || target >= order.length) {
+        return state
+    }
+    order[index] = order[target]
+    order[target] = strain
+    return { ...state, gardenerOrder: order }
 }
 
 
@@ -282,8 +326,17 @@ function updateGardener(state: GameState, changes: Partial<StaffMember>): GameSt
     }
 }
 
+function gardenerStrain(state: GameState) {
+    return state.gardenerOrder.find((strain) => state.seeds[strain] > 0)
+}
+
 function tendPot(state: GameState, potId: number, now: number) {
-    return plant(harvest(state, potId, now), potId, now, 'classic')
+    const harvested = harvest(state, potId, now)
+    const strain = gardenerStrain(harvested)
+    if (strain === undefined) {
+        return harvested
+    }
+    return plant(harvested, potId, now, strain)
 }
 
 function runGardener(state: GameState, now: number): GameState {
@@ -304,7 +357,7 @@ function runGardener(state: GameState, now: number): GameState {
         return state
     }
     const ready = state.pots.find((pot) => getStage(pot, now) === 'ready')
-    const empty = state.seedStock > 0 ? state.pots.find((pot) => pot.plantedAt === null) : undefined
+    const empty = gardenerStrain(state) !== undefined ? state.pots.find((pot) => pot.plantedAt === null) : undefined
     const target = ready ?? empty
     if (target === undefined) {
         return state
@@ -317,14 +370,17 @@ function runRunner(state: GameState, now: number): GameState {
     if (runner === undefined || !runner.enabled || !state.staffPaid || now < runner.nextActionAt) {
         return state
     }
-    const available = state.grams - state.minStash
+    const available = totalCount(state.stash) - state.minStash
     const idle = state.dealers.filter(
         (dealer) => dealer.status === 'idle' && (!state.fullLoadsOnly || dealer.stats.capacity <= available),
     )
     if (idle.length === 0 || available < 1) {
         return state
     }
-    const expectedCash = (dealer: Dealer) => Math.min(dealer.stats.capacity, available) * (1 - dealer.stats.cut)
+    function expectedCash(dealer: Dealer) {
+        const load = takeGrams(state.stash, Math.min(dealer.stats.capacity, available))
+        return load.value * (1 - dealer.stats.cut)
+    }
     const best = idle.reduce((choice, dealer) => (expectedCash(dealer) > expectedCash(choice) ? dealer : choice))
     const next = sendDealer(state, best.id, Math.min(best.stats.capacity, available), now)
     const nextActionAt = now + CONFIG.staff.runner.actionSeconds * 1000
@@ -361,7 +417,7 @@ function unloadPallet(state: GameState, now: number): GameState {
     const amount = CONFIG.dock.offers[order.offerIndex].amount
     return {
         ...state,
-        seedStock: state.seedStock + amount,
+        seeds: { ...state.seeds, classic: state.seeds.classic + amount },
         dock: { ...state.dock, order: null, lastUnload: { amount, at: now } },
     }
 }

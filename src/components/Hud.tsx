@@ -1,9 +1,9 @@
 import { useState, type ReactNode } from 'react'
 import { CashIcon, GramsIcon, SeedIcon, VanIcon } from '../art/icons'
-import { CONFIG } from '../game/config'
 import { dockStatus, formatClock, secondsLeft } from '../game/dock'
-import type { Dock } from '../game/types'
 import { StoreModal } from './StoreModal'
+import { STRAINS } from '../game/strains'
+import type { Dock, StrainCounts, StrainId } from '../game/types'
 
 type CounterProps = {
     label: string
@@ -18,6 +18,33 @@ function Counter(props: CounterProps) {
             <span className="sr-only">{props.label}</span>
             <span className="font-mono text-lg text-paper">{props.value}</span>
         </div>
+    )
+}
+
+type SeedPickerProps = {
+    seeds: StrainCounts
+    unlocked: StrainId[]
+    picked: StrainId
+    onPick: (strain: StrainId) => void
+}
+
+function SeedPicker(props: SeedPickerProps) {
+    return (
+        <label className="flex items-center gap-2 rounded-lg bg-ground px-3 py-2 text-muted">
+            <SeedIcon className="size-5" />
+            <span className="sr-only">Seed to plant</span>
+            <select
+                value={props.picked}
+                onChange={(event) => props.onPick(event.target.value as StrainId)}
+                className="cursor-pointer bg-ground font-mono text-lg text-paper"
+            >
+                {STRAINS.filter((strain) => props.unlocked.includes(strain.id)).map((strain) => (
+                    <option key={strain.id} value={strain.id}>
+                        {strain.name} · {props.seeds[strain.id]}
+                    </option>
+                ))}
+            </select>
+        </label>
     )
 }
 
@@ -56,12 +83,17 @@ function DockChip(props: DockChipProps) {
 type HudProps = {
     cash: number
     grams: number
-    seedStock: number
+    sellPrice: number
+    seeds: StrainCounts
+    plantStrain: StrainId
     dock: Dock
     now: number
     onSell: () => void
-    onBuySeeds: (offerIndex: number) => void
+    unlocked: StrainId[]
+    onBuySeeds: (strain: StrainId, bundleIndex: number) => void
+    onUnlock: (strain: StrainId) => void
     onUnload: () => void
+    onPickStrain: (strain: StrainId) => void
 }
 
 export function Hud(props: HudProps) {
@@ -76,7 +108,7 @@ export function Hud(props: HudProps) {
                     <h1 className="mr-2 text-2xl font-bold tracking-wide">DRUG EMPIRE</h1>
                     <Counter label="Cash" value={`$${props.cash}`} icon={<CashIcon className="size-5" />} />
                     <Counter label="Stash" value={`${props.grams} g`} icon={<GramsIcon className="size-5" />} />
-                    <Counter label="Seeds" value={`${props.seedStock}`} icon={<SeedIcon className="size-5" />} />
+                    <SeedPicker seeds={props.seeds} unlocked={props.unlocked} picked={props.plantStrain} onPick={props.onPickStrain} />
                     <DockChip dock={props.dock} now={props.now} onUnload={props.onUnload} />
                 </div>
                 <div className="flex flex-wrap items-center gap-3">
@@ -88,15 +120,17 @@ export function Hud(props: HudProps) {
                         Store
                     </button>
                     <button type="button" disabled={!canSell} onClick={props.onSell} className={`${buttonClass} bg-leaf text-ink`}>
-                        Sell 1 g · ${CONFIG.pricePerGram}
+                        Sell 1 g · ${props.sellPrice}
                     </button>
                 </div>
             </header>
             {storeOpen && (
                 <StoreModal
                     cash={props.cash}
-                    seedStock={props.seedStock}
+                    seeds={props.seeds}
+                    unlocked={props.unlocked}
                     onBuySeeds={props.onBuySeeds}
+                    onUnlock={props.onUnlock}
                     onClose={() => setStoreOpen(false)}
                 />
             )}

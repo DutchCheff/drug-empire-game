@@ -1,21 +1,58 @@
+import { getStrain } from "../../game/strains"
+import type { StrainCounts, StrainId } from "../../game/types"
+
 function SoonBadge() {
     return <span className="rounded-full border border-gold px-2 font-mono text-xs text-gold">Soon</span>
 }
 
-export function GardenerSettings() {
+type GardenerSettingsProps = {
+    order: StrainId[]
+    seeds: StrainCounts
+    onMove: (strain: StrainId, direction: -1 | 1) => void
+}
+
+export function GardenerSettings(props: GardenerSettingsProps) {
     const select = 'h-10 w-full cursor-not-allowed rounded-lg border border-edge bg-ground px-3 text-muted'
+    const moveButton =
+        'size-8 cursor-pointer rounded-md border border-edge bg-panel hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-40'
 
     return (
         <section className="flex flex-col gap-3 border-t border-edge pt-4">
             <h3 className="font-mono text-xs tracking-widest text-muted uppercase">Planting</h3>
-            <label className="flex flex-col gap-1.5 text-sm">
-                <span className="flex items-center justify-between">
-                    Strain <SoonBadge />
-                </span>
-                <select disabled className={select}>
-                    <option>Classic</option>
-                </select>
-            </label>
+            <div className="flex flex-col gap-1.5 text-sm">
+                <span>Seed priority · high to low</span>
+                <ol className="flex flex-col gap-1.5">
+                    {props.order.map((strain, index) => {
+                        const name = getStrain(strain).name
+                        return (
+                            <li key={strain} className="flex items-center gap-2 rounded-lg border border-edge bg-ground px-3 py-1.5">
+                                <span className="w-5 font-mono text-muted">{index + 1}</span>
+                                <span className="flex-1">{name}</span>
+                                <span className="font-mono text-xs text-muted">{props.seeds[strain]} seeds</span>
+                                <button
+                                    type="button"
+                                    aria-label={`Move ${name} up`}
+                                    disabled={index === 0}
+                                    onClick={() => props.onMove(strain, -1)}
+                                    className={moveButton}
+                                >
+                                    ↑
+                                </button>
+                                <button
+                                    type="button"
+                                    aria-label={`Move ${name} down`}
+                                    disabled={index === props.order.length - 1}
+                                    onClick={() => props.onMove(strain, 1)}
+                                    className={moveButton}
+                                >
+                                    ↓
+                                </button>
+                            </li>
+                        )
+                    })}
+                </ol>
+                <p className="text-muted">He plants the highest strain that has seeds in stock.</p>
+            </div>
             <label className="flex flex-col gap-1.5 text-sm">
                 <span className="flex items-center justify-between">
                     Fertilizer <SoonBadge />

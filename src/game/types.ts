@@ -27,6 +27,8 @@ export type Strain = {
     unlockCost: number
 }
 
+export type StrainCounts = Record<StrainId, number>
+
 export type Pot = {
     id: number
     plantedAt: number | null
@@ -63,6 +65,7 @@ export type Dealer = DealerCandidate & {
     // When the current trip or jail time started, null when idle.
     statusSince: number | null
     carrying: number
+    carryingValue: number
     lastTrip: TripResult | null
 }
 
@@ -95,8 +98,11 @@ export type Dock = {
 
 export type GameState = {
     cash: number
-    grams: number
-    seedStock: number
+    stash: StrainCounts
+    seeds: StrainCounts
+    plantStrain: StrainId
+    unlocked: StrainId[]
+    gardenerOrder: StrainId[]
     pots: Pot[]
     dealers: Dealer[]
     candidates: DealerCandidate[]

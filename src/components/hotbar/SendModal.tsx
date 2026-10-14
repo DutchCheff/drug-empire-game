@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import { DealerSprite } from '../../art/dealers/DealerSprite'
 import { lookFor } from '../../art/dealers/looks'
-import { CONFIG } from '../../game/config'
-import type { Dealer } from '../../game/types'
-import { Modal } from '../Modal'
+import { takeGrams, totalCount } from '../../game/strains'
+import type { Dealer, StrainCounts } from '../../game/types'
 import { DealerStatsList } from './DealerStatsList'
+import { Modal } from '../Modal'
 
 const SUBTITLES = {
     idle: 'Waiting at the stash',
@@ -14,16 +14,16 @@ const SUBTITLES = {
 
 type SendModalProps = {
     dealer: Dealer
-    stash: number
+    stash: StrainCounts
     onSend: (grams: number) => void
     onClose: () => void
 }
 
 export function SendModal(props: SendModalProps) {
-    const max = Math.min(props.dealer.stats.capacity, props.stash)
+    const max = Math.min(props.dealer.stats.capacity, totalCount(props.stash))
     const [amount, setAmount] = useState(max)
     const grams = Math.max(1, Math.min(amount, max))
-    const payout = Math.round(grams * CONFIG.pricePerGram * (1 - props.dealer.stats.cut))
+    const payout = Math.round(takeGrams(props.stash, grams).value * (1 - props.dealer.stats.cut))
     const stepButton = 'size-9 cursor-pointer rounded-lg border border-edge bg-ground font-semibold hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-40'
     const canSend = props.dealer.status === 'idle' && max >= 1
 

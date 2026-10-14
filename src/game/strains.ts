@@ -1,4 +1,5 @@
-import type { Strain, StrainId } from "./types";
+import { CONFIG } from "./config";
+import type { Strain, StrainCounts, StrainId } from "./types";
 
 export const STRAINS: Strain[] = [
     {
@@ -93,4 +94,44 @@ export const STRAINS: Strain[] = [
 
 export function getStrain(id: StrainId): Strain {
     return STRAINS.find((strain) => strain.id === id) ?? STRAINS[0]
+}
+
+export function emptyCounts(): StrainCounts {
+    return Object.fromEntries(STRAINS.map((strain) => [strain.id, 0])) as StrainCounts
+}
+
+const BY_PRICE = [...STRAINS].sort((first, second) => second.pricePerGram - first.pricePerGram)
+
+export function totalCount(counts: StrainCounts) {
+    return Object.values(counts).reduce((total, count) => total + count, 0)
+}
+
+export function takeGrams(stash: StrainCounts, grams: number) {
+    const left = { ...stash }
+    let taken = 0
+    let value = 0
+    for (const strain of BY_PRICE) {
+        const amount = Math.min(left[strain.id], grams - taken)
+        left[strain.id] -= amount
+        taken += amount
+        value += amount * strain.pricePerGram
+    }
+    return { stash: left, grams: taken, value }
+}
+
+export function sellPrice(stash: StrainCounts) {
+    return takeGrams(stash, 1).value || STRAINS[0].pricePerGram
+}
+
+export function seedBundles(id: StrainId) {
+    const bundles = id === 'classic' ? CONFIG.seedBundles.classic : CONFIG.seedBundles.other
+    const seedPrice = getStrain(id).seedPrice
+    return bundles.map((bundle) => ({
+        amount: bundle.amount,
+        price: Math.round(bundle.amount * seedPrice * (1 - bundle.discount))
+    }))
+}
+
+export function nextLocked(unlocked: StrainId[]) {
+    return STRAINS.find((strain) => !unlocked.includes(strain.id))
 }

@@ -4,12 +4,18 @@ export const CONFIG = {
   startPots: 4,
   maxPots: 9,
   startSeeds: 4,
-  seedOffers: [
-    { amount: 1, price: 5 },
-    { amount: 10, price: 40 },
-    { amount: 100, price: 375 },
-  ],
-  pricePerGram: 4,
+  seedBundles: {
+    classic: [
+      { amount: 1, discount: 0 },
+      { amount: 10, discount: 0.2 },
+      { amount: 100, discount: 0.25 },
+    ],
+    other: [
+      { amount: 1, discount: 0 },
+      { amount: 10, discount: 0.2 },
+      { amount: 50, discount: 0.25 },
+    ],
+  },
   dealer: {
     baseCost: 50,
     costGrowth: 1.2,

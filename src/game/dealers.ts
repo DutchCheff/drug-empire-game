@@ -44,7 +44,7 @@ export function rollCandidates(roll: Roll) {
 }
 
 export function createDealer(id: number, candidate: DealerCandidate): Dealer {
-    return { ...candidate, id, status: 'idle', statusSince: null, carrying: 0, lastTrip: null }
+    return { ...candidate, id, status: 'idle', statusSince: null, carrying: 0, carryingValue: 0, lastTrip: null }
 }
 
 export function getTripProgress(dealer: Dealer, now: number) {
@@ -68,7 +68,7 @@ function rollTrip(dealer: Dealer, roll: Roll, at: number): TripResult {
     if (roll() < dealer.stats.robberyChance) {
         return { outcome: 'robbed', grams: dealer.carrying, cash: 0, at }
     }
-    const cash = Math.round(dealer.carrying * CONFIG.pricePerGram * (1 - dealer.stats.cut))
+    const cash = Math.round(dealer.carryingValue * (1 - dealer.stats.cut))
     return { outcome: 'sold', grams: dealer.carrying, cash, at }
 }
 
@@ -89,6 +89,7 @@ export function updateDealers(state: GameState, now: number, roll: Roll): GameSt
                     status: arrested ? 'jailed' : 'idle',
                     statusSince: arrested ? backAt : null,
                     carrying: 0,
+                    carryingValue: 0,
                     lastTrip: trip,
                 }
             }

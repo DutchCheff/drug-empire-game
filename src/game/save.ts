@@ -1,4 +1,5 @@
 import type { GameState } from "./types";
+import { emptyCounts } from "./strains";
 import { createInitialState } from "./state";
 
 const SAVE_KEY = 'drug-empire-save'
@@ -11,8 +12,21 @@ export function loadGame(now: number): GameState {
             return fresh
         }
         // Fields added in newer versions of the game get their starting value.
-        const loaded: GameState = { ...fresh, ...JSON.parse(saved)}
-        return { ...loaded, pots: loaded.pots.map((pot) => ({ ...pot, strain: pot.strain ?? 'classic' })) }
+        const parsed = JSON.parse(saved)
+        const loaded: GameState = { ...fresh, ...parsed }
+        const seeds = parsed.seeds ?? { classic: parsed.seedStock ?? 0 }
+        const stash = parsed.stash ?? { classic: parsed.grams ?? 0 }
+        return {
+            ...loaded,
+            seeds: { ...emptyCounts(), ...seeds },
+            stash: { ...emptyCounts(), ...stash },
+            gardenerOrder: parsed.gardenerOrder ?? [...loaded.unlocked].reverse(),
+            pots: loaded.pots.map((pot) => ({ ...pot, strain: pot.strain ?? 'classic' })),
+            dealers: loaded.dealers.map((dealer) => ({
+                ...dealer,
+                carryingValue: dealer.carryingValue ?? dealer.carrying * 4,
+            })),
+        }
     } catch {
         return fresh
     }
