@@ -100,7 +100,7 @@ export function emptyCounts(): StrainCounts {
     return Object.fromEntries(STRAINS.map((strain) => [strain.id, 0])) as StrainCounts
 }
 
-const BY_PRICE = [...STRAINS].sort((first, second) => second.pricePerGram - first.pricePerGram)
+export const BY_PRICE = [...STRAINS].sort((first, second) => second.pricePerGram - first.pricePerGram)
 
 export function totalCount(counts: StrainCounts) {
     return Object.values(counts).reduce((total, count) => total + count, 0)
@@ -108,15 +108,17 @@ export function totalCount(counts: StrainCounts) {
 
 export function takeGrams(stash: StrainCounts, grams: number) {
     const left = { ...stash }
+    const byStrain = emptyCounts()
     let taken = 0
     let value = 0
     for (const strain of BY_PRICE) {
         const amount = Math.min(left[strain.id], grams - taken)
         left[strain.id] -= amount
+        byStrain[strain.id] = amount
         taken += amount
         value += amount * strain.pricePerGram
     }
-    return { stash: left, grams: taken, value }
+    return { stash: left, byStrain, grams: taken, value }
 }
 
 export function sellPrice(stash: StrainCounts) {

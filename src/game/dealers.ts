@@ -1,5 +1,6 @@
 import { between, wholeBetween } from '../lib/random'
 import { CONFIG } from './config'
+import { emptyCounts } from './strains'
 import type { Dealer, DealerCandidate, DealerStats, GameState, TripResult } from './types'
 
 type Roll = () => number
@@ -44,7 +45,16 @@ export function rollCandidates(roll: Roll) {
 }
 
 export function createDealer(id: number, candidate: DealerCandidate): Dealer {
-    return { ...candidate, id, status: 'idle', statusSince: null, carrying: 0, carryingValue: 0, lastTrip: null }
+    return {
+        ...candidate,
+        id,
+        status: 'idle',
+        statusSince: null,
+        carrying: 0,
+        carryingValue: 0,
+        load: emptyCounts(),
+        lastTrip: null,
+    }
 }
 
 export function getTripProgress(dealer: Dealer, now: number) {
@@ -63,13 +73,13 @@ export function getJailSecondsLeft(dealer: Dealer, now: number) {
 
 function rollTrip(dealer: Dealer, roll: Roll, at: number): TripResult {
     if (roll() < dealer.stats.arrestChance) {
-        return { outcome: 'arrested', grams: dealer.carrying, cash: 0, at }
+        return { outcome: 'arrested', grams: dealer.carrying, load: dealer.load, cash: 0, at }
     }
     if (roll() < dealer.stats.robberyChance) {
-        return { outcome: 'robbed', grams: dealer.carrying, cash: 0, at }
+        return { outcome: 'robbed', grams: dealer.carrying, load: dealer.load, cash: 0, at }
     }
     const cash = Math.round(dealer.carryingValue * (1 - dealer.stats.cut))
-    return { outcome: 'sold', grams: dealer.carrying, cash, at }
+    return { outcome: 'sold', grams: dealer.carrying, load: dealer.load, cash, at }
 }
 
 export function updateDealers(state: GameState, now: number, roll: Roll): GameState {
@@ -90,6 +100,7 @@ export function updateDealers(state: GameState, now: number, roll: Roll): GameSt
                     statusSince: arrested ? backAt : null,
                     carrying: 0,
                     carryingValue: 0,
+                    load: emptyCounts(),
                     lastTrip: trip,
                 }
             }

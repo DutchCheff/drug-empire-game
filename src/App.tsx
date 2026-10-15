@@ -9,6 +9,7 @@ import { Room } from "./components/Room";
 import { Hotbar } from "./components/hotbar/Hotbar";
 import { Hud } from "./components/Hud";
 import { AwayModal } from "./components/AwayModal";
+import { StashModal } from './components/StashModal'
 import { TripToasts } from './components/TripToasts'
 import { DevPanel } from './components/DevPanel'
 import { sellPrice, totalCount } from "./game/strains";
@@ -19,6 +20,7 @@ function App() {
   const [state, dispatch] = useReducer(gameReducer, start.state)
   const [awaySummary, setAwaySummary] = useState(start.summary)
   const [storeOpen, setStoreOpen] = useState(false)
+  const [stashOpen, setStashOpen] = useState(false)
 
   useEffect(() => {
     saveGame({ ...state, savedAt: Date.now() })
@@ -63,6 +65,7 @@ function App() {
         onUnlock={(strain) => dispatch({ type: 'unlockStrain', strain })}
         storeOpen={storeOpen}
         onStoreOpen={setStoreOpen}
+        onStashClick={() => setStashOpen(true)}
         onUnload={() => dispatch({ type: 'unloadPallet', now })}
         onPickStrain={(strain) => dispatch({ type: 'pickStrain', strain })}
       />
@@ -84,6 +87,7 @@ function App() {
         onBuildDock={() => dispatch({ type: 'buildDock' })}
         onOrderPallet={(offerIndex) => dispatch({ type: 'orderPallet', offerIndex, now })}
         onUnloadPallet={() => dispatch({ type: 'unloadPallet', now })}
+        onStashClick={() => setStashOpen(true)}
       />
 
       <Hotbar
@@ -112,6 +116,7 @@ function App() {
       />
 
       {awaySummary !== null && <AwayModal summary={awaySummary} onClose={() => setAwaySummary(null)} />}
+      {stashOpen && <StashModal stash={state.stash} unlocked={state.unlocked} onClose={() => setStashOpen(false)} />}
       <TripToasts dealers={state.dealers} dock={state.dock} now={now} />
       {import.meta.env.DEV && (
         <DevPanel

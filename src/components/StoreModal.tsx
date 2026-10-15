@@ -26,8 +26,8 @@ export function StoreModal(props: StoreModalProps) {
     const next = nextLocked(props.unlocked)
     const tabClass = 'flex h-10 items-center gap-2 border-b-2 px-3.5 font-semibold'
     const buyClass =
-        'h-10 cursor-pointer rounded-lg bg-leaf px-3 font-mono text-sm font-semibold text-ink disabled:cursor-not-allowed disabled:opacity-40'
-    const rowClass = 'flex flex-wrap items-center gap-3 rounded-xl border border-edge bg-ground p-3'
+        'h-10 w-full cursor-pointer whitespace-nowrap rounded-lg bg-leaf px-3 font-mono text-sm font-semibold text-ink disabled:cursor-not-allowed disabled:opacity-40'
+    const rowClass = 'grid items-center gap-3 rounded-xl border border-edge bg-ground p-3'
 
     return (
         <Modal
@@ -68,9 +68,9 @@ export function StoreModal(props: StoreModalProps) {
             {tab === 'seeds' && (
                 <ul className="flex flex-col gap-2">
                     {STRAINS.filter((strain) => props.unlocked.includes(strain.id)).map((strain) => (
-                        <li key={strain.id} className={rowClass}>
-                            <div className="flex min-w-40 flex-1 flex-col">
-                                <span className="font-semibold">{strain.name}</span>
+                        <li key={strain.id} className={`${rowClass} grid-cols-[minmax(0,1fr)_repeat(3,7.5rem)]`}>
+                            <div className="flex min-w-0 flex-col">
+                                <span className="truncate font-semibold">{strain.name}</span>
                                 <span className="font-mono text-xs text-muted">In stock: {props.seeds[strain.id]}</span>
                             </div>
                             {seedBundles(strain.id).map((bundle, index) => (
@@ -95,32 +95,32 @@ export function StoreModal(props: StoreModalProps) {
                         const owned = props.unlocked.includes(strain.id)
                         const cost = `$${strain.unlockCost.toLocaleString('en-US')}`
                         return (
-                            <li key={strain.id} className={rowClass}>
-                                <div className="flex min-w-48 flex-1 flex-col">
-                                    <span className="font-semibold">
+                            <li key={strain.id} className={`${rowClass} grid-cols-[minmax(0,1fr)_14rem_10rem]`}>
+                                <div className="flex min-w-0 flex-col">
+                                    <span className="truncate font-semibold">
                                         {strain.name}
                                         {strain.kind !== null && (
                                             <span className="ml-2 font-mono text-xs font-normal text-muted">{strain.kind}</span>
                                         )}
                                     </span>
-                                    <span className="text-sm text-muted">{strain.role}</span>
+                                    <span className="truncate text-sm text-muted">{strain.role}</span>
                                 </div>
                                 <span className="font-mono text-xs text-muted">
                                     {strain.growSeconds} s · {strain.yieldGrams} g · ${strain.pricePerGram}/g · seed ${strain.seedPrice}
                                 </span>
-                                {owned && <span className="w-36 text-right font-mono text-sm text-leaf">Unlocked</span>}
+                                {owned && <span className="text-right font-mono text-sm text-leaf">Unlocked</span>}
                                 {!owned && next?.id === strain.id && (
                                     <button
                                         type="button"
                                         disabled={props.cash < strain.unlockCost}
                                         onClick={() => props.onUnlock(strain.id)}
-                                        className={`${buyClass} w-36`}
+                                        className={buyClass}
                                     >
                                         Unlock · {cost}
                                     </button>
                                 )}
                                 {!owned && next?.id !== strain.id && (
-                                    <span className="w-36 text-right font-mono text-sm text-muted">{cost}</span>
+                                    <span className="text-right font-mono text-sm text-muted">{cost}</span>
                                 )}
                             </li>
                         )

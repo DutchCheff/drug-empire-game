@@ -1,13 +1,21 @@
 import { CONFIG } from '../game/config'
 import { arrivalAt, formatClock } from '../game/dock'
-import type { Dealer, Dock, TripResult } from '../game/types'
+import { BY_PRICE } from '../game/strains'
+import type { Dealer, Dock, StrainCounts, TripResult } from '../game/types'
 
 const SHOW_MS = 4000
 
 type Toast = {
     key: string
     text: string
+    detail?: string
     color: string
+}
+
+function loadText(load: StrainCounts) {
+    return BY_PRICE.filter((strain) => load[strain.id] > 0)
+        .map((strain) => `${load[strain.id]} g ${strain.name}`)
+        .join(' · ')
 }
 
 function toastText(name: string, trip: TripResult) {
@@ -51,7 +59,11 @@ export function TripToasts(props: TripToastsProps) {
     const recent: Toast[] = []
     for (const dealer of props.dealers) {
         if (dealer.lastTrip !== null && props.now - dealer.lastTrip.at < SHOW_MS) {
-            recent.push({ key: `${dealer.id}-${dealer.lastTrip.at}`, ...toastText(dealer.name, dealer.lastTrip) })
+            recent.push({
+                key: `${dealer.id}-${dealer.lastTrip.at}`,
+                detail: loadText(dealer.lastTrip.load),
+                ...toastText(dealer.name, dealer.lastTrip),
+            })
         }
     }
     recent.push(...dockToasts(props.dock, props.now))
@@ -59,12 +71,13 @@ export function TripToasts(props: TripToastsProps) {
     return (
         <div aria-live="polite" className="pointer-events-none fixed top-6 right-6 z-20 flex flex-col items-end gap-2">
             {recent.map((toast) => (
-                <p
+                <div
                     key={toast.key}
-                    className={`animate-toast-in rounded-lg border bg-panel px-4 py-2 font-semibold shadow-lg ${toast.color}`}
+                    className={`animate-toast-in flex flex-col items-end rounded-lg border bg-panel px-4 py-2 shadow-lg ${toast.color}`}
                 >
-                    {toast.text}
-                </p>
+                    <p className="font-semibold">{toast.text}</p>
+                    {toast.detail && <p className="font-mono text-xs text-muted">{toast.detail}</p>}
+                </div>
             ))}
         </div>
     )

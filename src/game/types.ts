@@ -52,6 +52,7 @@ export type TripOutcome = 'sold' | 'robbed' | 'arrested'
 export type TripResult = {
     outcome: TripOutcome
     grams: number
+    load: StrainCounts
     cash: number
     at: number
 }
@@ -68,6 +69,7 @@ export type Dealer = DealerCandidate & {
     statusSince: number | null
     carrying: number
     carryingValue: number
+    load: StrainCounts
     lastTrip: TripResult | null
 }
 

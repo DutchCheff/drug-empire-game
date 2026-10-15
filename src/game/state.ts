@@ -248,7 +248,14 @@ function sendDealer(state: GameState, dealerId: number, grams: number, now: numb
             if (item.id !== dealerId) {
                 return item
             }
-            return { ...item, status: 'out', statusSince: now, carrying: load.grams, carryingValue: load.value }
+            return {
+                ...item,
+                status: 'out',
+                statusSince: now,
+                carrying: load.grams,
+                carryingValue: load.value,
+                load: load.byStrain,
+            }
         }),
     }
 }

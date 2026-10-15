@@ -25,6 +25,8 @@ export function loadGame(now: number): GameState {
             dealers: loaded.dealers.map((dealer) => ({
                 ...dealer,
                 carryingValue: dealer.carryingValue ?? dealer.carrying * 4,
+                load: dealer.load ?? { ...emptyCounts(), classic: dealer.carrying },
+                lastTrip: dealer.lastTrip === null ? null : { ...dealer.lastTrip, load: dealer.lastTrip.load ?? emptyCounts() },
             })),
         }
     } catch {

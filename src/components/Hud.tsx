@@ -9,15 +9,25 @@ type CounterProps = {
     label: string
     value: string
     icon: ReactNode
+    onClick?: () => void
 }
 
 function Counter(props: CounterProps) {
-    return (
-        <div className="flex items-center gap-2 rounded-lg bg-ground px-3 py-2 text-muted">
+    const className = 'flex items-center gap-2 rounded-lg bg-ground px-3 py-2 text-muted'
+    const content = (
+        <>
             {props.icon}
             <span className="sr-only">{props.label}</span>
             <span className="font-mono text-lg text-paper">{props.value}</span>
-        </div>
+        </>
+    )
+    if (props.onClick === undefined) {
+        return <div className={className}>{content}</div>
+    }
+    return (
+        <button type="button" onClick={props.onClick} className={`${className} cursor-pointer hover:ring-2 hover:ring-edge`}>
+            {content}
+        </button>
     )
 }
 
@@ -94,6 +104,7 @@ type HudProps = {
     onUnlock: (strain: StrainId) => void
     storeOpen: boolean
     onStoreOpen: (open: boolean) => void
+    onStashClick: () => void
     onUnload: () => void
     onPickStrain: (strain: StrainId) => void
 }
@@ -107,10 +118,28 @@ export function Hud(props: HudProps) {
             <header className="flex w-full max-w-300 flex-wrap items-center justify-between gap-4 rounded-xl border border-edge bg-panel px-6 py-4">
                 <div className="flex flex-wrap items-center gap-3">
                     <h1 className="mr-2 text-2xl font-bold tracking-wide">DRUG EMPIRE</h1>
-                    <Counter label="Cash" value={`$${props.cash}`} icon={<CashIcon className="size-5" />} />
-                    <Counter label="Stash" value={`${props.grams} g`} icon={<GramsIcon className="size-5" />} />
-                    <SeedPicker seeds={props.seeds} unlocked={props.unlocked} picked={props.plantStrain} onPick={props.onPickStrain} />
-                    <DockChip dock={props.dock} now={props.now} onUnload={props.onUnload} />
+                    <Counter
+                        label="Cash"
+                        value={`$${props.cash}`}
+                        icon={<CashIcon className="size-5" />}
+                    />
+                    <Counter
+                        label="Stash"
+                        value={`${props.grams} g`}
+                        icon={<GramsIcon className="size-5" />}
+                        onClick={props.onStashClick}
+                    />
+                    <SeedPicker
+                        seeds={props.seeds}
+                        unlocked={props.unlocked}
+                        picked={props.plantStrain}
+                        onPick={props.onPickStrain}
+                    />
+                    <DockChip
+                        dock={props.dock}
+                        now={props.now}
+                        onUnload={props.onUnload}
+                    />
                 </div>
                 <div className="flex flex-wrap items-center gap-3">
                     <button

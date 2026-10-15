@@ -10,6 +10,15 @@ import { RoomDock } from './RoomDock'
 import { RoomStaff } from './RoomStaff'
 import { PotButton } from "./PotButton";
 
+const STASH_BOX = { width: 125, height: 78 }
+
+const stashStyle: CSSProperties = {
+    left: `${((STASH.x - STASH_BOX.width / 2) / ROOM_WIDTH) * 100}%`,
+    top: `${((STASH.y - STASH_BOX.height / 2) / ROOM_HEIGHT) * 100}%`,
+    width: `${(STASH_BOX.width / ROOM_WIDTH) * 100}%`,
+    height: `${(STASH_BOX.height / ROOM_HEIGHT) * 100}%`,
+}
+
 function slotStyle(index: number): CSSProperties {
     const slot = POT_SLOTS[index]
     return {
@@ -63,6 +72,7 @@ type RoomProps = {
     onBuildDock: () => void
     onOrderPallet: (offerIndex: number) => void
     onUnloadPallet: () => void
+    onStashClick: () => void
 }
 
 export function Room(props: RoomProps) {
@@ -79,6 +89,13 @@ export function Room(props: RoomProps) {
                     <StashTable grams={props.stash} />
                 </g>
             </svg>
+            <button
+                type="button"
+                onClick={props.onStashClick}
+                aria-label={`Stash: ${props.stash} g`}
+                className="absolute cursor-pointer rounded-md hover:bg-white/10"
+                style={stashStyle}
+            />
             {props.pots.map((pot, index) => (
                 <div key={pot.id} className="absolute" style={slotStyle(index)}>
                     <PotButton
