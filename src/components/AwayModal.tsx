@@ -41,6 +41,9 @@ function summaryLines(summary: AwaySummary) {
     if (summary.vanWaiting) {
         lines.push({ text: 'Van waiting at the dock', value: 'unload', color: 'text-gold' })
     }
+    for (const text of summary.trained) {
+        lines.push({ text })
+    }
     return lines
 }
 
@@ -57,8 +60,8 @@ export function AwayModal(props: AwayModalProps) {
     return (
         <Modal title="While you were away" subtitle={subtitle} size="sm" onClose={props.onClose}>
             <ul className="flex flex-col gap-1.5">
-                {lines.map((line) => (
-                    <li key={line.text} className="flex justify-between gap-4">
+                {lines.map((line, index) => (
+                    <li key={index} className="flex justify-between gap-4">
                         <span>{line.text}</span>
                         {line.value !== undefined && <span className={`font-mono ${line.color ?? 'text-paper'}`}>{line.value}</span>}
                     </li>

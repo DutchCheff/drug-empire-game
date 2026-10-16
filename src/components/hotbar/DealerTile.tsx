@@ -1,13 +1,11 @@
 import { CONFIG } from '../../game/config'
 import { getJailSecondsLeft, getTripProgress } from '../../game/dealers'
+import { formatClock } from '../../game/dock'
 import { DealerSprite } from '../../art/dealers/DealerSprite'
 import { lookFor } from '../../art/dealers/looks'
+import { trainingShare } from '../../game/training'
 import type { Dealer } from '../../game/types'
-
-function clockTime(seconds: number) {
-    const minutes = Math.floor(seconds / 60)
-    return `${minutes}:${String(seconds % 60).padStart(2, '0')}`
-}
+import { TrainingRing } from './TrainingRing'
 
 function statusLine(dealer: Dealer, now: number) {
     if (dealer.status === 'out') {
@@ -15,7 +13,7 @@ function statusLine(dealer: Dealer, now: number) {
         return { text: `out · ${secondsLeft} s`, color: 'text-muted' }
     }
     if (dealer.status === 'jailed') {
-        return { text: `jail · ${clockTime(getJailSecondsLeft(dealer, now))}`, color: 'text-danger' }
+        return { text: `jail · ${formatClock(getJailSecondsLeft(dealer, now))}`, color: 'text-danger' }
     }
     if (dealer.lastTrip === null) {
         return { text: 'idle', color: 'text-leaf' }
@@ -59,7 +57,7 @@ export function DealerTile(props: DealerTileProps) {
                 className={`relative flex size-19 cursor-pointer items-center justify-center rounded-xl border-2 bg-ground hover:bg-white/5 ${BORDERS[props.dealer.status]} ${props.selected ? 'ring-2 ring-paper' : ''}`}
             >
                 <svg viewBox="-17 -18 34 34" className={`size-14 ${idle ? '' : 'opacity-50'}`} aria-hidden="true">
-                    <DealerSprite look={lookFor(props.dealer.id)} walking={false} backpack={false} />
+                    <DealerSprite look={lookFor(props.dealer.look)} walking={false} backpack={false} />
                 </svg>
                 {props.dealer.status === 'out' && (
                     <span className="absolute inset-x-1.5 bottom-1.5 h-1 rounded-full bg-white/10">
@@ -70,6 +68,13 @@ export function DealerTile(props: DealerTileProps) {
                     </span>
                 )}
                 {idle && <span className="absolute top-1.5 right-1.5 size-2.5 rounded-full bg-leaf" />}
+                {props.dealer.training !== null && (
+                    <TrainingRing
+                        share={trainingShare(props.dealer, props.now)}
+                        paused={props.dealer.status === 'jailed'}
+                        className="absolute -top-2 -left-2 size-7"
+                    />
+                )}
             </button>
             <span className="text-sm font-semibold">{props.dealer.name}</span>
             <span className={`text-center font-mono text-xs ${status.color}`}>{status.text}</span>

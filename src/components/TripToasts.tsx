@@ -1,6 +1,7 @@
 import { CONFIG } from '../game/config'
 import { arrivalAt, formatClock } from '../game/dock'
 import { BY_PRICE } from '../game/strains'
+import { SKILL_NAMES } from '../game/training'
 import type { Dealer, Dock, StrainCounts, TripResult } from '../game/types'
 
 const SHOW_MS = 4000
@@ -63,6 +64,16 @@ export function TripToasts(props: TripToastsProps) {
                 key: `${dealer.id}-${dealer.lastTrip.at}`,
                 detail: loadText(dealer.lastTrip.load),
                 ...toastText(dealer.name, dealer.lastTrip),
+            })
+        }
+    }
+    for (const dealer of props.dealers) {
+        const trained = dealer.lastTrained
+        if (trained !== null && props.now - trained.at < SHOW_MS) {
+            recent.push({
+                key: `train-${dealer.id}-${trained.at}`,
+                text: `${dealer.name} finished ${SKILL_NAMES[trained.skill]} ${trained.rank}`,
+                color: 'border-leaf text-leaf',
             })
         }
     }

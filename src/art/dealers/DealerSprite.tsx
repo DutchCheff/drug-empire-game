@@ -2,6 +2,38 @@ import { polar } from '../geometry'
 import type { DealerLook } from './looks'
 
 const REVERSE = '[animation-direction:alternate-reverse]'
+const GOLD = '#E9B949'
+const GOLD_SHADE = '#B88E2A'
+const SHADES = '#121214'
+
+const CAMO_SPOTS = [
+    { x: -9, y: -3, rx: 3.4, ry: 2.2, angle: 20 },
+    { x: -2, y: 4, rx: 3, ry: 2, angle: -15 },
+    { x: 7, y: -2, rx: 3.6, ry: 2.3, angle: 35 },
+    { x: 11, y: 4, rx: 2.6, ry: 1.8, angle: 0 },
+    { x: -12, y: 3, rx: 2.4, ry: 1.6, angle: -30 },
+    { x: 2, y: -5, rx: 2.4, ry: 1.6, angle: 10 },
+]
+
+const AFRO_CURLS = [
+    { x: -5, y: -3 },
+    { x: 3, y: -5 },
+    { x: 6, y: 2 },
+    { x: -2, y: 4 },
+    { x: -6, y: 3 },
+    { x: 1, y: -1 },
+]
+
+const BANDANA_DOTS = [
+    { x: -3.5, y: -2 },
+    { x: 2, y: -3.5 },
+    { x: 4.5, y: 1.5 },
+    { x: -1, y: 2 },
+    { x: -4.5, y: 3.5 },
+    { x: 1.5, y: 5 },
+]
+
+const CORNROWS = [-4.6, -2.3, 0, 2.3, 4.6]
 
 type LimbProps = {
     look: DealerLook
@@ -54,6 +86,41 @@ function Backpack() {
             <rect x={-3} y={3.4} width={6} height={2.6} rx={1} fill="#7FAE4E" />
         </g>
     )
+}
+
+type CamoProps = {
+    color: string
+}
+
+function Camo(props: CamoProps) {
+    return (
+        <g>
+            {CAMO_SPOTS.map((spot, index) => (
+                <ellipse
+                    key={index}
+                    cx={spot.x}
+                    cy={spot.y}
+                    rx={spot.rx}
+                    ry={spot.ry}
+                    fill={props.color}
+                    transform={`rotate(${spot.angle} ${spot.x} ${spot.y})`}
+                />
+            ))}
+        </g>
+    )
+}
+
+function Chain() {
+    return (
+        <g>
+            <circle r={9.3} fill="none" stroke={GOLD} strokeWidth={1.2} strokeDasharray="1.5 0.9" />
+            <circle cy={-9.3} r={1.6} fill={GOLD} stroke={GOLD_SHADE} strokeWidth={0.5} />
+        </g>
+    )
+}
+
+function Shades() {
+    return <rect x={-4.8} y={-8.7} width={9.6} height={2.3} rx={1.1} fill={SHADES} />
 }
 
 type HeadProps = {
@@ -129,6 +196,7 @@ function Head(props: HeadProps) {
                     <Ears look={look} />
                     <circle r={7.5} fill={look.skin} />
                     <circle cy={1.1} r={7.1} fill={look.hair} />
+                    {look.shades && <Shades />}
                 </g>
             )
         }
@@ -139,6 +207,158 @@ function Head(props: HeadProps) {
                     <circle r={9.6} fill="none" stroke={look.hat} strokeWidth={0.7} strokeDasharray="1.6 1.4" />
                     <circle r={7} fill={look.hat} />
                     <circle r={4} fill="none" stroke={look.hatShade} strokeWidth={0.6} />
+                </g>
+            )
+        }
+        case 'snapback': {
+            return (
+                <g>
+                    <Nose look={look} />
+                    <Ears look={look} />
+                    <circle r={7.5} fill={look.skin} />
+                    <path d="M-6.6 4 Q0 15 6.6 4 Z" fill={look.hatShade} />
+                    <circle cy={-0.3} r={7.6} fill={look.hat} />
+                    <path d="M0 -0.3 L0 7.3 M0 -0.3 L6.6 -4 M0 -0.3 L-6.6 -4" stroke={look.hatShade} strokeWidth={0.6} />
+                    <rect x={-2.2} y={-8.2} width={4.4} height={2.2} rx={1} fill={look.skin} />
+                    <circle cy={-0.3} r={1.2} fill={look.hatShade} />
+                </g>
+            )
+        }
+        case 'bald': {
+            return (
+                <g>
+                    <Nose look={look} />
+                    <Ears look={look} />
+                    <circle r={7.5} fill={look.skin} />
+                    <ellipse cx={-2.2} cy={-1.8} rx={2.6} ry={1.7} fill="rgba(255,255,255,0.22)" />
+                    {look.shades && <Shades />}
+                </g>
+            )
+        }
+        case 'afro': {
+            return (
+                <g>
+                    <Nose look={look} />
+                    <circle cy={0.6} r={10.4} fill={look.hair} />
+                    {AFRO_CURLS.map((curl, index) => (
+                        <circle key={index} cx={curl.x} cy={curl.y} r={2.2} fill="rgba(0,0,0,0.14)" />
+                    ))}
+                    {look.shades && <Shades />}
+                </g>
+            )
+        }
+        case 'durag': {
+            return (
+                <g>
+                    <path
+                        d="M-1.6 6.5 L-3.2 13.5 M1.6 6.5 L3.2 13.5"
+                        stroke={look.hatShade}
+                        strokeWidth={2.4}
+                        strokeLinecap="round"
+                    />
+                    <Nose look={look} />
+                    <Ears look={look} />
+                    <circle r={7.6} fill={look.hat} />
+                    <path d="M0 -7.6 L0 7.6" stroke={look.hatShade} strokeWidth={0.8} />
+                    <path d="M-7.2 -2.4 Q0 -5.5 7.2 -2.4" stroke={look.hatShade} strokeWidth={0.8} fill="none" />
+                    {look.shades && <Shades />}
+                </g>
+            )
+        }
+        case 'mohawk': {
+            return (
+                <g>
+                    <Nose look={look} />
+                    <Ears look={look} />
+                    <circle r={7.5} fill={look.skin} />
+                    <circle cy={0.6} r={7} fill={look.hair} opacity={0.22} />
+                    <rect x={-2} y={-7.4} width={4} height={15} rx={2} fill={look.hair} />
+                </g>
+            )
+        }
+        case 'headphones': {
+            return (
+                <g>
+                    <Nose look={look} />
+                    <circle r={7.5} fill={look.skin} />
+                    <circle cy={1.1} r={7.1} fill={look.hair} />
+                    <path
+                        d="M-8.4 0 Q0 -2.6 8.4 0"
+                        stroke={look.hatShade}
+                        strokeWidth={2}
+                        fill="none"
+                        strokeLinecap="round"
+                    />
+                    <ellipse cx={-8.6} cy={0.4} rx={2.4} ry={3.6} fill={look.hat} stroke={look.hatShade} strokeWidth={0.6} />
+                    <ellipse cx={8.6} cy={0.4} rx={2.4} ry={3.6} fill={look.hat} stroke={look.hatShade} strokeWidth={0.6} />
+                </g>
+            )
+        }
+        case 'ponytail': {
+            return (
+                <g>
+                    <ellipse cy={10} rx={2.8} ry={4.4} fill={look.hair} />
+                    <Nose look={look} />
+                    <Ears look={look} />
+                    <circle r={7.5} fill={look.skin} />
+                    <circle cy={1.1} r={7.1} fill={look.hair} />
+                    <circle cy={7} r={1.5} fill={look.hat} />
+                    {look.shades && <Shades />}
+                </g>
+            )
+        }
+        case 'bandana': {
+            return (
+                <g>
+                    <path d="M0 6.8 L-3 10.6 L0 9.4 L3 10.6 Z" fill={look.hatShade} />
+                    <Nose look={look} />
+                    <Ears look={look} />
+                    <circle r={7.5} fill={look.skin} />
+                    <circle cy={0.8} r={7.4} fill={look.hat} />
+                    {BANDANA_DOTS.map((dot, index) => (
+                        <circle key={index} cx={dot.x} cy={dot.y} r={0.8} fill={look.hatShade} />
+                    ))}
+                </g>
+            )
+        }
+        case 'cornrows': {
+            return (
+                <g>
+                    <Nose look={look} />
+                    <Ears look={look} />
+                    <circle r={7.5} fill={look.skin} />
+                    <circle cy={1.1} r={7.1} fill={look.hair} />
+                    {CORNROWS.map((x) => {
+                        const half = Math.sqrt(Math.max(0, 7.1 ** 2 - x ** 2)) - 0.6
+                        return (
+                            <path
+                                key={x}
+                                d={`M${x} ${1.1 - half} L${x} ${1.1 + half}`}
+                                stroke="rgba(255,255,255,0.16)"
+                                strokeWidth={0.8}
+                            />
+                        )
+                    })}
+                    {look.shades && <Shades />}
+                </g>
+            )
+        }
+        case 'beret': {
+            return (
+                <g>
+                    <Nose look={look} />
+                    <Ears look={look} />
+                    <circle r={7.5} fill={look.skin} />
+                    <ellipse
+                        cx={1.6}
+                        cy={-0.4}
+                        rx={8.2}
+                        ry={7.6}
+                        fill={look.hat}
+                        stroke={look.hatShade}
+                        strokeWidth={0.9}
+                    />
+                    <circle cx={1.6} cy={-0.4} r={1.1} fill={look.hatShade} />
                 </g>
             )
         }
@@ -162,9 +382,11 @@ export function DealerSprite(props: DealerSpriteProps) {
             <Arm look={look} side={1} walking={props.walking} />
             <ellipse cy={1.2} rx={16} ry={10} fill={look.topShade} />
             <ellipse rx={15.3} ry={9} fill={look.top} />
+            {look.camo !== undefined && <Camo color={look.camo} />}
             {look.puffer && (
                 <path d="M-14 -3.5 Q0 -7 14 -3.5 M-15 2.5 Q0 -0.5 15 2.5" stroke={look.topShade} strokeWidth={1.2} fill="none" />
             )}
+            {look.chain && <Chain />}
             {props.backpack && <Backpack />}
             <Head look={look} />
         </g>

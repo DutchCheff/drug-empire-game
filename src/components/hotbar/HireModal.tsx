@@ -15,8 +15,6 @@ type HireModalProps = {
 }
 
 export function HireModal(props: HireModalProps) {
-    const look = lookFor(props.dealerCount + 1)
-
     return (
         <Modal
             title="Hire a dealer"
@@ -31,7 +29,7 @@ export function HireModal(props: HireModalProps) {
                         <div key={index} className="flex flex-col gap-3 rounded-xl border border-edge bg-ground p-3.5">
                             <div className="flex items-center gap-2.5">
                                 <svg viewBox="-17 -18 34 34" className="size-11" aria-hidden="true">
-                                    <DealerSprite look={look} walking={false} backpack={false} />
+                                    <DealerSprite look={lookFor(candidate.look)} walking={false} backpack={false} />
                                 </svg>
                                 <h3 className="text-lg font-semibold">{candidate.name}</h3>
                             </div>

@@ -17,6 +17,7 @@ export const CONFIG = {
     ],
   },
   dealer: {
+    looks: 25,
     baseCost: 50,
     costGrowth: 1.2,
     tripSeconds: 20,
@@ -46,6 +47,17 @@ export const CONFIG = {
       { name: 'Seed crate', amount: 250, price: 800, seconds: 60 },
       { name: 'Seed pallet', amount: 1000, price: 3000, seconds: 90 },
     ],
+  },
+  training: {
+    rankGrowth: 2,
+    maxRank: 5,
+    minCut: 0.05,
+    skills: {
+      strength: { cost: 100, seconds: 30, perRank: 3 },
+      stealth: { cost: 150, seconds: 45, perRank: 0.15 },
+      streetSmarts: { cost: 150, seconds: 45, perRank: 0.15 },
+      loyalty: { cost: 250, seconds: 60, perRank: 0.02 },
+    },
   },
   offline: { capHours: 2, stepSeconds: 0.5 },
   awaySummarySeconds: 60,

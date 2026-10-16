@@ -4,6 +4,7 @@ import { RoomBackground } from "../art/room/RoomBackground";
 import { StashTable } from "../art/room/StashTable";
 import { POT_SLOTS, ROOM_HEIGHT, ROOM_WIDTH, SLOT_SIZE, WAIT_SPOTS, STASH } from '../art/room/roomLayout'
 import { dockStatus } from '../game/dock'
+import { dealerStats } from "../game/training";
 import type { Dealer, Dock, Pot, StaffMember } from '../game/types'
 import { RoomDealer } from "./RoomDealer";
 import { RoomDock } from './RoomDock'
@@ -132,7 +133,7 @@ export function Room(props: RoomProps) {
                     spot={WAIT_SPOTS[index % WAIT_SPOTS.length]}
                     now={props.now}
                     canSend={props.stash > 0}
-                    onSend={() => props.onSendDealer(dealer.id, dealer.stats.capacity)}
+                    onSend={() => props.onSendDealer(dealer.id, dealerStats(dealer).capacity)}
                 />
             ))}
             {props.staff.map((member) => (

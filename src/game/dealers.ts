@@ -1,6 +1,7 @@
 import { between, wholeBetween } from '../lib/random'
 import { CONFIG } from './config'
 import { emptyCounts } from './strains'
+import { emptySkills, resumeTraining, dealerStats } from './training'
 import type { Dealer, DealerCandidate, DealerStats, GameState, TripResult } from './types'
 
 type Roll = () => number
@@ -8,9 +9,22 @@ type Roll = () => number
 const TRIP_MS = CONFIG.dealer.tripSeconds * 1000
 const JAIL_MS = CONFIG.dealer.jailSeconds * 1000
 
-const DEALER_NAMES = ['Kev', 'Dre', 'Mo', 'Johnny', 'Sally', 'Bridget']
+const DEALER_NAMES = [
+    'Kev', 'Dre', 'Mo', 'Johnny', 'Sally', 'Bridget',
+    'Tariq', 'Lenny', 'Rosa', 'Vince', 'Jaz', 'Marco',
+    'Tasha', 'Benny', 'Nico', 'Dee', 'Rico', 'Lola',
+    'Sammy', 'Frankie', 'Kat', 'Ozzy', 'Tony', 'Mel',
+    'Reggie', 'Ivy', 'Dante', 'Gina', 'Smiley', 'Pip',
+]
 
-function rollCandidate(roll: Roll): DealerCandidate {
+export function pickLook(roll: Roll, usedLooks: number[]) {
+    const all = Array.from({ length: CONFIG.dealer.looks }, (_, index) => index)
+    const free = all.filter((look) => !usedLooks.includes(look))
+    const choices = free.length > 0 ? free : all
+    return choices[wholeBetween(roll, 0, choices.length - 1)]
+}
+
+function rollCandidate(roll: Roll, usedLooks: number[]): DealerCandidate {
     const ranges = CONFIG.dealer
     return {
         name: DEALER_NAMES[wholeBetween(roll, 0, DEALER_NAMES.length - 1)],
@@ -20,6 +34,7 @@ function rollCandidate(roll: Roll): DealerCandidate {
             robberyChance: between(roll, ranges.robberyChance[0], ranges.robberyChance[1]),
             arrestChance: between(roll, ranges.arrestChance[0], ranges.arrestChance[1]),
         },
+        look: pickLook(roll, usedLooks),
     }
 }
 
@@ -36,10 +51,13 @@ export function dealerQuality(stats: DealerStats) {
     return capacity * 0.35 + cut * 0.35 + robbery * 0.15 + arrest * 0.15
 }
 
-export function rollCandidates(roll: Roll) {
+export function rollCandidates(roll: Roll, usedLooks: number[]) {
+    const used = [...usedLooks]
     const candidates: DealerCandidate[] = []
     for (let index = 0; index < CONFIG.dealer.candidateCount; index++) {
-        candidates.push(rollCandidate(roll))
+        const candidate = rollCandidate(roll, used)
+        used.push(candidate.look)
+        candidates.push(candidate)
     }
     return candidates
 }
@@ -53,6 +71,9 @@ export function createDealer(id: number, candidate: DealerCandidate): Dealer {
         carrying: 0,
         carryingValue: 0,
         load: emptyCounts(),
+        skills: emptySkills(),
+        training: null,
+        lastTrained: null,
         lastTrip: null,
     }
 }
@@ -72,13 +93,14 @@ export function getJailSecondsLeft(dealer: Dealer, now: number) {
 }
 
 function rollTrip(dealer: Dealer, roll: Roll, at: number): TripResult {
-    if (roll() < dealer.stats.arrestChance) {
+    const stats = dealerStats(dealer)
+    if (roll() < stats.arrestChance) {
         return { outcome: 'arrested', grams: dealer.carrying, load: dealer.load, cash: 0, at }
     }
-    if (roll() < dealer.stats.robberyChance) {
+    if (roll() < stats.robberyChance) {
         return { outcome: 'robbed', grams: dealer.carrying, load: dealer.load, cash: 0, at }
     }
-    const cash = Math.round(dealer.carryingValue * (1 - dealer.stats.cut))
+    const cash = Math.round(dealer.carryingValue * (1 - stats.cut))
     return { outcome: 'sold', grams: dealer.carrying, load: dealer.load, cash, at }
 }
 
@@ -106,7 +128,8 @@ export function updateDealers(state: GameState, now: number, roll: Roll): GameSt
             }
         }
         if (current.status === 'jailed' && current.statusSince !== null && now >= current.statusSince + JAIL_MS) {
-            current = { ...current, status: 'idle', statusSince: null }
+            const releasedAt = current.statusSince + JAIL_MS
+            current = { ...current, status: 'idle', statusSince: null, training: resumeTraining(current, releasedAt) }
         }
         if (current !== dealer) {
             changed = true

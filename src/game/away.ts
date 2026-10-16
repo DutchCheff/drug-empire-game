@@ -5,6 +5,7 @@ import { wagesPerMinute } from './staff'
 import { gameReducer } from './state'
 import { dockStatus } from './dock'
 import { getStrain } from './strains'
+import { SKILL_NAMES } from './training'
 import type { GameState } from './types'
 
 export type AwaySummary = {
@@ -22,6 +23,7 @@ export type AwaySummary = {
     wagesPaid: number
     plantsReady: number
     vanWaiting: boolean
+    trained: string[]
 }
 
 const PAY_MS = CONFIG.staff.payEverySeconds * 1000
@@ -35,6 +37,10 @@ function record(summary: AwaySummary, before: GameState, after: GameState, now: 
     })
     after.dealers.forEach((dealer, index) => {
         const previous = before.dealers[index]
+        const trained = dealer.lastTrained
+        if (trained !== null && trained !== previous.lastTrained) {
+            summary.trained.push(`${dealer.name} finished ${SKILL_NAMES[trained.skill]} ${trained.rank}`)
+        }
         if (dealer.status === 'out' && dealer.statusSince !== previous.statusSince) {
             summary.loadsSent += 1
             summary.gramsSent += dealer.carrying
@@ -64,7 +70,12 @@ function skipTime(state: GameState, ms: number): GameState {
             plantedAt: pot.plantedAt === null ? null : pot.plantedAt + ms,
         })),
         dealers: state.dealers.map((dealer) => ({
-            ...dealer, statusSince: dealer.statusSince === null ? null : dealer.statusSince + ms,
+            ...dealer,
+            statusSince: dealer.statusSince === null ? null : dealer.statusSince + ms,
+            training:
+                dealer.training === null
+                    ? null
+                    : { ...dealer.training, startedAt: dealer.training.startedAt + ms, endsAt: dealer.training.endsAt + ms },
         })),
         staff: state.staff.map((member) => ({
             ...member,
@@ -99,6 +110,7 @@ export function startGame(now: number) {
         wagesPaid: 0,
         plantsReady: 0,
         vanWaiting: false,
+        trained: [],
     }
 
     let state = saved

@@ -36,7 +36,7 @@ export function RoomDealer(props: RoomDealerProps) {
             }}
         >
             <svg viewBox="-30 -30 60 60" className="h-full w-full overflow-visible" style={{ transform: `rotate(${placement.angle}deg)` }}>
-                <DealerSprite look={lookFor(props.dealer.id)} walking={placement.walking} backpack={props.dealer.carrying > 0} />
+                <DealerSprite look={lookFor(props.dealer.look)} walking={placement.walking} backpack={props.dealer.carrying > 0} />
             </svg>
         </button>
     )

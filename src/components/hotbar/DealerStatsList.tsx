@@ -1,9 +1,6 @@
 import { Fragment } from "react/jsx-runtime";
 import type { DealerStats } from "../../game/types";
-
-function percent(value: number) {
-    return `${(value * 100).toFixed(value < 0.1 ? 1 : 0)}%`
-}
+import { percent } from "../../lib/format";
 
 type DealerStatsListProps = {
     stats: DealerStats

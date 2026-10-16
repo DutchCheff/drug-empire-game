@@ -113,6 +113,7 @@ function App() {
         onMoveStrain={(strain, target) => dispatch({ type: 'moveStrain', strain, target })}
         onGardenerMode={(mode) => dispatch({ type: 'setGardenerMode', mode })}
         onOpenStore={() => setStoreOpen(true)}
+        onTrain={(dealerId, skill) => dispatch({ type: 'trainDealer', dealerId, skill, now })}
       />
 
       {awaySummary !== null && <AwayModal summary={awaySummary} onClose={() => setAwaySummary(null)} />}
@@ -121,8 +122,9 @@ function App() {
       {import.meta.env.DEV && (
         <DevPanel
           cash={state.cash}
-          grams={stashGrams}
-          onSet={(cash, grams) => dispatch({ type: 'devSet', cash, grams })}
+          stash={state.stash}
+          unlocked={state.unlocked}
+          onSet={(cash, strain, grams) => dispatch({ type: 'devSet', cash, strain, grams })}
           onRipenPots={() => dispatch({ type: 'devRipenPots', now })}
         />
       )}

@@ -41,7 +41,8 @@ hire dealers to sell, reinvest.
   (street price minus their cut), but you can only sell 1 g per click
   yourself. Dealers move volume while you grow.
 - Rolls use a seed stored in the save, so a refresh can't reroll a result.
-- Later: choose a strain per hand-off, automation, upgrades.
+- Dealers improve through training (see Dealer training), not gear.
+- Every dealer has their own look (25 looks); a hire candidate already shows it.
 
 ## Store
 - Store button in the top bar opens a store panel.
@@ -49,10 +50,60 @@ hire dealers to sell, reinvest.
   (shown in the top bar). Planting uses 1 seed from stock; with no seeds
   an empty pot can't be planted (click shows "No seeds, open the store").
 - New game starts with 4 seeds and $20.
-- Later sections in the same store:
-  - Strains: other seed types with their own price, grow time and value.
-  - Dealer gear: e.g. bigger backpack (+capacity), burner phone (−arrest chance).
-  - Grow gear: lamps (faster growth), fertilizer (bigger yield).
+- Tabs: Seeds, Strains, Grow gear (see Grow gear). The Dealer gear tab is
+  dropped: dealers improve through training.
+
+## Dealer training
+Design: canvas board "Crew and training". Numbers are proposals.
+- **Crew modal**: table of all hired dealers (status, carry, cut, robbery,
+  arrest, ranks n/20, running training). Click a row for that dealer's four
+  skills: next rank's effect before → after, price, duration, Train.
+  Opens from a Crew tile after Hire in the Dealers tab (shows "n training")
+  and from the dealer modal ("Train ›" / "Crew ›" link under the stats).
+- **Rules**: paid in cash up front, then a timer. One skill per dealer at a
+  time; no cancel, no rush. The dealer keeps working while training. Jail
+  pauses the timer. It runs offline (within the 2-hour cap). Skills stay for
+  good, also after jail. New hires start untrained.
+- **Skills**, 5 ranks each, every rank ×2 the previous in cash and time:
+
+| Skill         | Effect per rank                    | Cost rank 1 → 5 | Time rank 1 → 5 |
+|---------------|------------------------------------|-----------------|-----------------|
+| Strength      | +3 g carry capacity                | $100 → $1,600   | 30 s → 8 min    |
+| Stealth       | −15% of base arrest chance         | $150 → $2,400   | 45 s → 12 min   |
+| Street smarts | −15% of base robbery chance        | $150 → $2,400   | 45 s → 12 min   |
+| Loyalty       | −2 points cut, never below 5%      | $250 → $4,000   | 1 min → 16 min  |
+
+- Shown stats everywhere (dealer modal, Send payout, runner choice) include
+  trained ranks.
+- Training ring on the dealer tile (grey when paused in jail); toast
+  "Dre finished Strength 2", also for ranks finished while away.
+
+## Grow gear
+Design: canvas boards "Store grow gear" and "Lamp and fertilizer".
+- **Grow lamp**: bought one at a time; hangs over one pot, that pot grows
+  25% faster. First lamp $150, every next ×1.5. Max one per pot. The store
+  row shows owned · placed · available and pots without a lamp; "No free
+  pots for a lamp" when every pot has one.
+- **Placing mode**: starts after buying a lamp, or from the lamp chip in the
+  top bar (only while lamps are available or placing). Banner over the room
+  with Done (or Escape). Pots without a lamp show a dashed lamp slot; lamps
+  show × to take them back. Moving = take back, then hang elsewhere.
+- **Fertilizer**: bags, 1 for $20 · 10 for $160 · 50 for $750. One bag per
+  planting: +40% yield on that harvest; granules and a tag on the pot until
+  harvest. By hand when the bag chip in the top bar is on; by the gardener
+  when his Fertilizer switch is on. Out of bags: planting goes on without,
+  the chip shows "out", the gardener's switch turns off, one toast.
+- **Dock**: the Fertilizer pallet row in Bulk order becomes active
+  (100 bags; proposal $1,500, 60 s).
+
+## Gardener upgrades
+Design: canvas board "Gardener upgrades". The gardener modal gets two
+tabs: Planting (what to plant + Fertilizer switch) and Upgrades.
+- **Movement speed**: 3 levels, each 25% faster walking and tending:
+  $500, $1,500, $4,500 (walk 1.2 → 0.96 → 0.77 → 0.61 s, tend 2 → 1.6 →
+  1.28 → 1.02 s). Header line follows the level. Gold dot on the tab when
+  the next level is affordable.
+- Soon rows: Green thumb (more yield), Second gardener.
 
 ## Strains
 Design: canvas board "Strains". Classic plus seven strains. Bloom buds are
@@ -164,18 +215,29 @@ plants harvested, loads sent, wages paid and the net cash change.
 - Offline replay with the 2-hour cap; away summary shows staff work and wages.
 - Loading dock: build slot, bulk order panel, van drive-in and drive-off,
   pallet unload, top-bar chip, dock toasts, offline arrival.
-- Trip toasts, "While you were away" summary, save in localStorage.
+- Trip toasts with the strains in the load ("9 g Sour Diesel · 6 g
+  Classic"), "While you were away" summary, save in localStorage.
+- Stash modal: opens from the Stash counter or the stash table; mix bar,
+  grams / price / value per unlocked strain in sell order, total.
+- Store rows on fixed columns (Seeds: name + three 7.5rem buttons;
+  Strains: name, stats 14rem, action 10rem).
 - Strains: 8 strains with their own art, grow time, yield and price;
   unlock in order in the store, seed bundles per strain, stash and seeds
   per strain (most expensive grams sold first), strain picker in the top
   bar, gardener planting modes (Best value / Fastest / My order).
+- Dealer training: Crew modal (table + skills, Train), Crew tile, training
+  ring on dealer tiles, training line in the dealer modal, "finished" toast
+  and away-summary lines; timer pauses in jail and runs offline.
 - Dev panel (dev only): set cash and grams, ripen all pots.
 
 ## Roadmap (implementation, in order)
-1. Store expansions: dealer gear, grow gear (lamp, fertilizer), fertilizer
-   pallet on the dock; gardener speed upgrades.
-2. Dock auto-restock (runner unloads and reorders below a threshold).
-3. Later: police heat, bigger buildings (warehouse, see canvas), prestige.
+1. Gardener upgrades: modal tabs, movement speed.
+2. Grow gear:
+   a. Grow lamps: buying, placing mode, lamp art, faster growth.
+   b. Fertilizer: bags, bag chip, gardener switch, pot marker, +yield.
+   c. Fertilizer pallet at the dock.
+3. Dock auto-restock (runner unloads and reorders below a threshold).
+4. Later: police heat, bigger buildings (warehouse, see canvas), prestige.
 
 Design happens in a separate chat on the canvas; boards marked "vision" or
 "Soon" are ideas until they're added to this roadmap.

@@ -2,7 +2,9 @@ import { useState } from 'react'
 import { CONFIG } from '../../game/config'
 import { hireCost } from '../../game/costs'
 import { findStaff, staffStatus, wagesPerMinute } from '../../game/staff'
-import type { Dealer, DealerCandidate, GardenerMode, StaffMember, StaffRole, StrainCounts, StrainId } from '../../game/types'
+import { TrainIcon } from '../../art/icons'
+import type { Dealer, DealerCandidate, GardenerMode, SkillId, StaffMember, StaffRole, StrainCounts, StrainId } from '../../game/types'
+import { CrewModal } from './CrewModal'
 import { DealerTile } from './DealerTile'
 import { HireModal } from './HireModal'
 import { SendModal } from './SendModal'
@@ -35,6 +37,7 @@ type HotbarProps = {
     onMoveStrain: (strain: StrainId, target: StrainId) => void
     onGardenerMode: (mode: GardenerMode) => void
     onOpenStore: () => void
+    onTrain: (dealerId: number, skill: SkillId) => void
 }
 
 export function Hotbar(props: HotbarProps) {
@@ -42,12 +45,14 @@ export function Hotbar(props: HotbarProps) {
     const [tab, setTab] = useState<HotbarTab>('dealers')
     const [open, setOpen] = useState(true)
     const [staffModal, setStaffModal] = useState<StaffRole | null>(null)
+    const [crew, setCrew] = useState<{ dealerId: number | null } | null>(null)
     const selectedDealer = props.dealers.find((dealer) => dealer.id === selected)
     const cheapestHire = Math.min(...props.candidates.map((candidate) => hireCost(candidate, props.dealers.length)))
     const crewFull = props.dealers.length >= CONFIG.dealer.maxDealers
 
     const idleCount = props.dealers.filter((dealer) => dealer.status === 'idle').length
     const awayCount = props.dealers.length - idleCount
+    const trainingCount = props.dealers.filter((dealer) => dealer.training !== null).length
     const gardener = findStaff(props.staff, 'gardener')
     const runner = findStaff(props.staff, 'runner')
     const gardenerStatus = staffStatus(gardener, props.staffPaid)
@@ -79,6 +84,11 @@ export function Hotbar(props: HotbarProps) {
                     key={selectedDealer.id}
                     dealer={selectedDealer}
                     stash={props.stash}
+                    now={props.now}
+                    onOpenCrew={() => {
+                        setSelected(null)
+                        setCrew({ dealerId: selectedDealer.id })
+                    }}
                     onSend={(grams) => {
                         props.onSend(selectedDealer.id, grams)
                         setSelected(null)
@@ -129,6 +139,20 @@ export function Hotbar(props: HotbarProps) {
                         />
                     )}
                 </StaffModal>
+            )}
+            {crew !== null && (
+                <CrewModal
+                    dealers={props.dealers}
+                    cash={props.cash}
+                    now={props.now}
+                    initialDealerId={crew.dealerId}
+                    onTrain={props.onTrain}
+                    onHire={() => {
+                        setCrew(null)
+                        setSelected('hire')
+                    }}
+                    onClose={() => setCrew(null)}
+                />
             )}
 
             <footer className="w-full max-w-300 overflow-hidden rounded-xl border border-edge bg-ground">
@@ -189,6 +213,20 @@ export function Hotbar(props: HotbarProps) {
                                             from ${cheapestHire}
                                         </span>
                                     )}
+                                </div>
+                                <div className="flex w-24 flex-col items-center gap-1">
+                                    <button
+                                        type="button"
+                                        onClick={() => setCrew({ dealerId: null })}
+                                        aria-label="Crew and training"
+                                        className="flex size-19 cursor-pointer items-center justify-center rounded-xl border-2 border-edge bg-ground text-paper hover:bg-white/5"
+                                    >
+                                        <TrainIcon className="size-8" />
+                                    </button>
+                                    <span className="text-sm font-semibold">Crew</span>
+                                    <span className={`font-mono text-xs ${trainingCount > 0 ? 'text-gold' : 'text-muted'}`}>
+                                        {trainingCount > 0 ? `${trainingCount} training` : 'train'}
+                                    </span>
                                 </div>
                             </div>
                         )}

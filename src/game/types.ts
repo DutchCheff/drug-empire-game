@@ -47,6 +47,23 @@ export type DealerStats = {
     arrestChance: number
 }
 
+export type SkillId = 'strength' | 'stealth' | 'streetSmarts' | 'loyalty'
+
+export type SkillRanks = Record<SkillId, number>
+
+export type Training = {
+    skill: SkillId
+    rank: number
+    startedAt: number
+    endsAt: number
+}
+
+export type TrainingDone = {
+    skill: SkillId
+    rank: number
+    at: number
+}
+
 export type TripOutcome = 'sold' | 'robbed' | 'arrested'
 
 export type TripResult = {
@@ -59,6 +76,7 @@ export type TripResult = {
 
 export type DealerCandidate = {
     name: string
+    look: number
     stats: DealerStats
 }
 
@@ -70,6 +88,9 @@ export type Dealer = DealerCandidate & {
     carrying: number
     carryingValue: number
     load: StrainCounts
+    skills: SkillRanks
+    training: Training | null
+    lastTrained: TrainingDone | null
     lastTrip: TripResult | null
 }
 

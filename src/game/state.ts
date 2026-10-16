@@ -6,7 +6,8 @@ import { arrivalAt } from './dock'
 import { findStaff, gardenerPick, payWages } from "./staff";
 import { getStage, growSeconds } from "./plants";
 import { emptyCounts, getStrain, takeGrams, totalCount, nextLocked, seedBundles } from "./strains";
-import type { Dealer, GameState, GardenerMode, Pot, StaffMember, StaffRole, StrainId } from "./types";
+import { dealerStats, finishTraining, trainingCost, trainingSeconds } from "./training";
+import type { Dealer, GameState, GardenerMode, Pot, SkillId, StaffMember, StaffRole, StrainId } from "./types";
 
 export type GameAction =
     | { type: 'plant'; potId: number; strain: StrainId; now: number }
@@ -17,7 +18,7 @@ export type GameAction =
     | { type: 'hireDealer'; candidateIndex: number }
     | { type: 'sendDealer'; dealerId: number; grams: number; now: number }
     | { type: 'tick'; now: number }
-    | { type: 'devSet'; cash: number; grams: number }
+    | { type: 'devSet'; cash: number; strain: StrainId; grams: number }
     | { type: 'devRipenPots'; now: number }
     | { type: 'buySeeds'; strain: StrainId; bundleIndex: number }
     | { type: 'hireStaff'; role: StaffRole; now: number }
@@ -31,6 +32,7 @@ export type GameAction =
     | { type: 'unlockStrain'; strain: StrainId }
     | { type: 'moveStrain'; strain: StrainId; target: StrainId }
     | { type: 'setGardenerMode'; mode: GardenerMode }
+    | { type: 'trainDealer'; dealerId: number; skill: SkillId; now: number }
 
 export function createInitialState(now: number): GameState {
     const pots: Pot[] = []
@@ -48,7 +50,7 @@ export function createInitialState(now: number): GameState {
         gardenerMode: 'value',
         pots,
         dealers: [],
-        candidates: rollCandidates(roller.roll),
+        candidates: rollCandidates(roller.roll, []),
         staff: [],
         staffPaid: true,
         nextPayday: 0,
@@ -87,7 +89,11 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
             return tick(state, action.now)
         }
         case 'devSet': {
-            return { ...state, cash: Math.max(0, action.cash), stash: { ...emptyCounts(), classic: Math.max(0, Math.floor(action.grams))} }
+            return {
+                ...state,
+                cash: Math.max(0, action.cash),
+                stash: { ...state.stash, [action.strain]: Math.max(0, Math.floor(action.grams)) },
+            }
         }
         case 'devRipenPots': {
             return {
@@ -130,6 +136,9 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         }
         case 'setGardenerMode': {
             return { ...state, gardenerMode: action.mode }
+        }
+        case 'trainDealer': {
+            return trainDealer(state, action.dealerId, action.skill, action.now)
         }
     }
 }
@@ -223,11 +232,15 @@ function hireDealer(state: GameState, candidateIndex: number): GameState {
         return state
     }
     const roller = makeRoller(state.seed)
+    const dealers = [...state.dealers, createDealer(state.dealers.length + 1, candidate)]
     return {
         ...state,
         cash: state.cash - cost,
-        dealers: [...state.dealers, createDealer(state.dealers.length + 1, candidate)],
-        candidates: rollCandidates(roller.roll),
+        dealers,
+        candidates: rollCandidates(
+            roller.roll,
+            dealers.map((dealer) => dealer.look),
+        ),
         seed: roller.nextSeed(),
     }
 }
@@ -237,7 +250,7 @@ function sendDealer(state: GameState, dealerId: number, grams: number, now: numb
     if (dealer === undefined || dealer.status !== 'idle') {
         return state
     }
-    const load = takeGrams(state.stash, Math.min(Math.floor(grams), dealer.stats.capacity))
+    const load = takeGrams(state.stash, Math.min(Math.floor(grams), dealerStats(dealer).capacity))
     if (load.grams < 1) {
         return state
     }
@@ -268,7 +281,37 @@ function tick(state: GameState, now: number): GameState {
     }
     next = payWages(next, now)
     next = runGardener(next, now)
-    return runRunner(next, now)
+    next = runRunner(next, now)
+    return finishTrainings(next, now)
+}
+
+function trainDealer(state: GameState, dealerId: number, skill: SkillId, now: number): GameState {
+    const dealer = state.dealers.find((item) => item.id === dealerId)
+    if (dealer === undefined || dealer.training !== null) {
+        return state
+    }
+    const rank = dealer.skills[skill] + 1
+    const cost = trainingCost(skill, rank)
+    if (rank > CONFIG.training.maxRank || state.cash < cost) {
+        return state
+    }
+    const training = { skill, rank, startedAt: now, endsAt: now + trainingSeconds(skill, rank) * 1000 }
+    return {
+        ...state,
+        cash: state.cash - cost,
+        dealers: state.dealers.map((item) => (item.id === dealerId ? { ...item, training } : item)),
+    }
+}
+
+function finishTrainings(state: GameState, now: number): GameState {
+    if (!state.dealers.some((dealer) => dealer.training !== null)) {
+        return state
+    }
+    const dealers = state.dealers.map((dealer) => finishTraining(dealer, now))
+    if (dealers.every((dealer, index) => dealer === state.dealers[index])) {
+        return state
+    }
+    return { ...state, dealers }
 }
 
 function buySeeds(state: GameState, strain: StrainId, bundleIndex: number): GameState {
@@ -383,17 +426,18 @@ function runRunner(state: GameState, now: number): GameState {
     }
     const available = totalCount(state.stash) - state.minStash
     const idle = state.dealers.filter(
-        (dealer) => dealer.status === 'idle' && (!state.fullLoadsOnly || dealer.stats.capacity <= available),
+        (dealer) => dealer.status === 'idle' && (!state.fullLoadsOnly || dealerStats(dealer).capacity <= available),
     )
     if (idle.length === 0 || available < 1) {
         return state
     }
-    function expectedCash(dealer: Dealer) {
-        const load = takeGrams(state.stash, Math.min(dealer.stats.capacity, available))
-        return load.value * (1 - dealer.stats.cut)
-    }
-    const best = idle.reduce((choice, dealer) => (expectedCash(dealer) > expectedCash(choice) ? dealer : choice))
-    const next = sendDealer(state, best.id, Math.min(best.stats.capacity, available), now)
+    const options = idle.map((dealer) => {
+        const stats = dealerStats(dealer)
+        const grams = Math.min(stats.capacity, available)
+        return { dealer, grams, cash: takeGrams(state.stash, grams).value * (1 - stats.cut) }
+    })
+    const best = options.reduce((choice, option) => (option.cash > choice.cash ? option : choice))
+    const next = sendDealer(state, best.dealer.id, best.grams, now)
     const nextActionAt = now + CONFIG.staff.runner.actionSeconds * 1000
     return {
         ...next,

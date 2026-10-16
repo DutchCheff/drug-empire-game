@@ -75,3 +75,20 @@ export function VanIcon(props: IconProps) {
         </svg>
     )
 }
+
+export function TrainIcon(props: IconProps) {
+    return (
+        <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={1.8}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className={props.className}
+            aria-hidden="true"
+        >
+            <path d="M4 9 V15 M7 7 V17 M17 7 V17 M20 9 V15 M7 12 H17" />
+        </svg>
+    )
+}
