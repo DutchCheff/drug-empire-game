@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { CashIcon, GramsIcon, SeedIcon, VanIcon } from '../art/icons'
+import { BellIcon, CashIcon, GramsIcon, SeedIcon, VanIcon } from '../art/icons'
 import { dockStatus, formatClock, secondsLeft } from '../game/dock'
 import { StoreModal } from './StoreModal'
 import { STRAINS } from '../game/strains'
@@ -58,6 +58,47 @@ function SeedPicker(props: SeedPickerProps) {
     )
 }
 
+type NotifyToggleProps = {
+    on: boolean
+    onChange: (on: boolean) => void
+}
+
+function NotifyToggle(props: NotifyToggleProps) {
+    const supported = 'Notification' in window
+    const blocked = supported && Notification.permission === 'denied'
+
+    async function handleClick() {
+        if (props.on) {
+            props.onChange(false)
+            return
+        }
+        const permission =
+            Notification.permission === 'default' ? await Notification.requestPermission() : Notification.permission
+        props.onChange(permission === 'granted')
+    }
+
+    let label = props.on ? 'Notify when seeds run out: on' : 'Notify when seeds run out: off'
+    if (!supported) {
+        label = 'Notifications are not supported in this browser'
+    } else if (blocked) {
+        label = 'Notifications are blocked for this site in the browser'
+    }
+
+    return (
+        <button
+            type="button"
+            aria-pressed={props.on}
+            aria-label={label}
+            title={label}
+            disabled={!supported || blocked}
+            onClick={handleClick}
+            className={`flex cursor-pointer items-center rounded-lg bg-ground px-3 py-2 disabled:cursor-not-allowed disabled:opacity-40 ${props.on ? 'text-gold' : 'text-muted hover:text-paper'}`}
+        >
+            <BellIcon className="size-5" />
+        </button>
+    )
+}
+
 type DockChipProps = {
     dock: Dock
     now: number
@@ -102,9 +143,17 @@ type HudProps = {
     unlocked: StrainId[]
     onBuySeeds: (strain: StrainId, bundleIndex: number) => void
     onUnlock: (strain: StrainId) => void
+    lamps: number
+    lampsPlaced: number
+    potCount: number
+    fertilizer: number
+    onBuyLamp: () => void
+    onBuyFertilizer: (bundleIndex: number) => void
     storeOpen: boolean
     onStoreOpen: (open: boolean) => void
     onStashClick: () => void
+    notify: boolean
+    onNotify: (on: boolean) => void
     onUnload: () => void
     onPickStrain: (strain: StrainId) => void
 }
@@ -135,6 +184,7 @@ export function Hud(props: HudProps) {
                         picked={props.plantStrain}
                         onPick={props.onPickStrain}
                     />
+                    <NotifyToggle on={props.notify} onChange={props.onNotify} />
                     <DockChip
                         dock={props.dock}
                         now={props.now}
@@ -161,6 +211,12 @@ export function Hud(props: HudProps) {
                     unlocked={props.unlocked}
                     onBuySeeds={props.onBuySeeds}
                     onUnlock={props.onUnlock}
+                    lamps={props.lamps}
+                    lampsPlaced={props.lampsPlaced}
+                    potCount={props.potCount}
+                    fertilizer={props.fertilizer}
+                    onBuyLamp={props.onBuyLamp}
+                    onBuyFertilizer={props.onBuyFertilizer}
                     onClose={() => props.onStoreOpen(false)}
                 />
             )}

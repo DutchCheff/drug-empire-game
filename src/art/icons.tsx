@@ -92,3 +92,21 @@ export function TrainIcon(props: IconProps) {
         </svg>
     )
 }
+
+export function BellIcon(props: IconProps) {
+    return (
+        <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={1.8}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className={props.className}
+            aria-hidden="true"
+        >
+            <path d="M6 16 V11 A6 6 0 0 1 18 11 V16 L19.5 18 H4.5 Z" />
+            <path d="M10 21 H14" />
+        </svg>
+    )
+}

@@ -35,6 +35,8 @@ export type Pot = {
     id: number
     plantedAt: number | null
     strain: StrainId
+    lamp: boolean
+    fertilized: boolean
 }
 
 
@@ -103,6 +105,7 @@ export type StaffMember = {
     potId: number | null
     targetPotId: number | null
     movedAt: number
+    speedLevel: number
 }
 
 export type DockOrder = {
@@ -129,6 +132,8 @@ export type GameState = {
     unlocked: StrainId[]
     gardenerOrder: StrainId[]
     gardenerMode: GardenerMode
+    lamps: number
+    fertilizer: number
     pots: Pot[]
     dealers: Dealer[]
     candidates: DealerCandidate[]

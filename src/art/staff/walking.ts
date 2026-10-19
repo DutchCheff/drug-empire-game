@@ -1,4 +1,4 @@
-import { CONFIG } from '../../game/config'
+import { gardenerSeconds } from '../../game/staff';
 import type { StaffMember } from '../../game/types'
 import { GARDENER_HOME, POT_SLOTS, RUNNER_SPOT } from '../room/roomLayout'
 
@@ -22,7 +22,7 @@ export function staffPlacement(member: StaffMember, now: number) {
         return { point: from, angle: 0, walking: false }
     }
     const to = besidePot(targetPotId)
-    const progress = Math.min((now - member.movedAt) / (CONFIG.staff.gardener.walkSeconds * 1000), 1)
+    const progress = Math.min((now - member.movedAt) / (gardenerSeconds(member.speedLevel).walk * 1000), 1)
     const dx = to.x - from.x
     const dy = to.y - from.y
     if (progress >= 1 || (dx === 0 && dy === 0)) {

@@ -2,7 +2,8 @@ import { useState, useEffect, useReducer } from "react";
 import { CONFIG } from "./game/config";
 import { nextPotCost } from "./game/costs";
 import { gameReducer } from "./game/state";
-import { useNow } from "./game/useNow";
+import { useGameClock } from './game/useGameClock'
+import { lampsPlaced } from "./game/gear";
 import { startGame } from './game/away'
 import { saveGame } from './game/save'
 import { Room } from "./components/Room";
@@ -13,14 +14,18 @@ import { StashModal } from './components/StashModal'
 import { TripToasts } from './components/TripToasts'
 import { DevPanel } from './components/DevPanel'
 import { sellPrice, totalCount } from "./game/strains";
+import { useSeedAlert } from './lib/useSeedAlert'
+import { useStoredFlag } from './lib/useStoredFlag'
 
 function App() {
-  const now = useNow()
   const [start] = useState(() => startGame(Date.now()))
   const [state, dispatch] = useReducer(gameReducer, start.state)
+  const now = useGameClock(dispatch)
   const [awaySummary, setAwaySummary] = useState(start.summary)
   const [storeOpen, setStoreOpen] = useState(false)
   const [stashOpen, setStashOpen] = useState(false)
+  const [notify, setNotify] = useStoredFlag('drug-empire-notify')
+  useSeedAlert(totalCount(state.seeds), notify)
 
   useEffect(() => {
     saveGame({ ...state, savedAt: Date.now() })
@@ -32,15 +37,6 @@ function App() {
       window.removeEventListener('pagehide', handlePageHide)
     }
   }, [state])
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      dispatch({ type: 'tick', now: Date.now() })
-    }, 250)
-    return () => {
-      clearInterval(timer)
-    }
-  }, [])
 
   const potCost = nextPotCost(state.pots.length)
   const potsFull = state.pots.length >= CONFIG.maxPots
@@ -63,9 +59,17 @@ function App() {
         unlocked={state.unlocked}
         onBuySeeds={(strain, bundleIndex) => dispatch({ type: 'buySeeds', strain, bundleIndex })}
         onUnlock={(strain) => dispatch({ type: 'unlockStrain', strain })}
+        lamps={state.lamps}
+        lampsPlaced={lampsPlaced(state.pots)}
+        potCount={state.pots.length}
+        fertilizer={state.fertilizer}
+        onBuyLamp={() => dispatch({ type: 'buyLamp' })}
+        onBuyFertilizer={(bundleIndex) => dispatch({ type: 'buyFertilizer', bundleIndex })}
         storeOpen={storeOpen}
         onStoreOpen={setStoreOpen}
         onStashClick={() => setStashOpen(true)}
+        notify={notify}
+        onNotify={setNotify}
         onUnload={() => dispatch({ type: 'unloadPallet', now })}
         onPickStrain={(strain) => dispatch({ type: 'pickStrain', strain })}
       />
@@ -114,6 +118,7 @@ function App() {
         onGardenerMode={(mode) => dispatch({ type: 'setGardenerMode', mode })}
         onOpenStore={() => setStoreOpen(true)}
         onTrain={(dealerId, skill) => dispatch({ type: 'trainDealer', dealerId, skill, now })}
+        onUpgradeGardener={() => dispatch({ type: 'upgradeGardener' })}
       />
 
       {awaySummary !== null && <AwayModal summary={awaySummary} onClose={() => setAwaySummary(null)} />}

@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { CONFIG } from '../../game/config'
 import { hireCost } from '../../game/costs'
-import { findStaff, staffStatus, wagesPerMinute } from '../../game/staff'
+import { findStaff, gardenerSeconds, staffStatus, wagesPerMinute } from '../../game/staff'
+import { seconds } from '../../lib/format'
 import { TrainIcon } from '../../art/icons'
 import type { Dealer, DealerCandidate, GardenerMode, SkillId, StaffMember, StaffRole, StrainCounts, StrainId } from '../../game/types'
 import { CrewModal } from './CrewModal'
@@ -9,7 +10,7 @@ import { DealerTile } from './DealerTile'
 import { HireModal } from './HireModal'
 import { SendModal } from './SendModal'
 import { StaffModal } from './StaffModal'
-import { GardenerSettings, RunnerSettings } from './StaffSettings'
+import { GardenerSettings, GardenerTabs, RunnerSettings } from './StaffSettings'
 import { StaffTile } from './StaffTile'
 
 type HotbarTab = 'dealers' | 'growers' | 'runners'
@@ -38,6 +39,7 @@ type HotbarProps = {
     onGardenerMode: (mode: GardenerMode) => void
     onOpenStore: () => void
     onTrain: (dealerId: number, skill: SkillId) => void
+    onUpgradeGardener: () => void
 }
 
 export function Hotbar(props: HotbarProps) {
@@ -55,6 +57,11 @@ export function Hotbar(props: HotbarProps) {
     const trainingCount = props.dealers.filter((dealer) => dealer.training !== null).length
     const gardener = findStaff(props.staff, 'gardener')
     const runner = findStaff(props.staff, 'runner')
+    const gardenerLevel = gardener?.speedLevel ?? 0
+    const rhythm =
+        staffModal === 'gardener'
+            ? `tends every ${seconds(gardenerSeconds(gardenerLevel).tend)}`
+            : `checks every ${seconds(CONFIG.staff.runner.actionSeconds)}`
     const gardenerStatus = staffStatus(gardener, props.staffPaid)
     const runnerStatus = staffStatus(runner, props.staffPaid)
     const wages = wagesPerMinute(props.staff)
@@ -112,24 +119,27 @@ export function Hotbar(props: HotbarProps) {
                 <StaffModal
                     role={staffModal}
                     status={staffModal === 'gardener' ? gardenerStatus : runnerStatus}
+                    rhythm={rhythm}
                     cash={props.cash}
                     onHire={() => props.onHireStaff(staffModal)}
                     onToggle={() => props.onToggleStaff(staffModal)}
                     onClose={() => setStaffModal(null)}
                 >
                     {staffModal === 'gardener' ? (
-                        <GardenerSettings
-                            mode={props.gardenerMode}
-                            order={props.gardenerOrder}
-                            seeds={props.seeds}
-                            unlocked={props.unlocked}
-                            onMode={props.onGardenerMode}
-                            onMove={props.onMoveStrain}
-                            onOpenStore={() => {
-                                setStaffModal(null)
-                                props.onOpenStore()
-                            }}
-                        />
+                        <GardenerTabs level={gardenerLevel} cash={props.cash} onUpgrade={props.onUpgradeGardener}>
+                            <GardenerSettings
+                                mode={props.gardenerMode}
+                                order={props.gardenerOrder}
+                                seeds={props.seeds}
+                                unlocked={props.unlocked}
+                                onMode={props.onGardenerMode}
+                                onMove={props.onMoveStrain}
+                                onOpenStore={() => {
+                                    setStaffModal(null)
+                                    props.onOpenStore()
+                                }}
+                            />
+                        </GardenerTabs>
                     ) : (
                         <RunnerSettings
                             minStash={props.minStash}

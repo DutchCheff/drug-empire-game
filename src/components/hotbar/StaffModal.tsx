@@ -9,6 +9,7 @@ import { STAFF_INFO, STATUS_STYLE } from './staffInfo'
 type StaffModalProps = {
     role: StaffRole
     status: StaffStatus
+    rhythm: string
     cash: number
     onHire: () => void
     onToggle: () => void
@@ -47,7 +48,7 @@ export function StaffModal(props: StaffModalProps) {
                 <div className="flex items-center justify-between gap-3">
                     <span className={`rounded-full border px-2.5 font-mono text-xs ${style.text} ${style.border}`}>{props.status}</span>
                     <span className="font-mono text-xs text-muted">
-                        ${config.wagePerMinute} / min · {info.rhythm}
+                        ${config.wagePerMinute} / min · {props.rhythm}
                     </span>
                 </div>
             ) : (

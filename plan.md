@@ -228,16 +228,19 @@ plants harvested, loads sent, wages paid and the net cash change.
 - Dealer training: Crew modal (table + skills, Train), Crew tile, training
   ring on dealer tiles, training line in the dealer modal, "finished" toast
   and away-summary lines; timer pauses in jail and runs offline.
-- Dev panel (dev only): set cash and grams, ripen all pots.
+- Gardener upgrades: Planting / Upgrades tabs in his modal, movement speed
+  in 3 levels (gold dot when affordable), header line follows the level.
+- Seed alert: bell in the top bar; a desktop notification when the seed
+  stock runs out while the tab is in the background.
+- Dev panel (dev only): set cash and grams per strain, ripen all pots.
 
 ## Roadmap (implementation, in order)
-1. Gardener upgrades: modal tabs, movement speed.
-2. Grow gear:
+1. Grow gear:
    a. Grow lamps: buying, placing mode, lamp art, faster growth.
    b. Fertilizer: bags, bag chip, gardener switch, pot marker, +yield.
    c. Fertilizer pallet at the dock.
-3. Dock auto-restock (runner unloads and reorders below a threshold).
-4. Later: police heat, bigger buildings (warehouse, see canvas), prestige.
+2. Dock auto-restock (runner unloads and reorders below a threshold).
+3. Later: police heat, bigger buildings (warehouse, see canvas), prestige.
 
 Design happens in a separate chat on the canvas; boards marked "vision" or
 "Soon" are ideas until they're added to this roadmap.

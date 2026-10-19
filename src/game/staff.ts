@@ -8,6 +8,14 @@ export function findStaff(staff: StaffMember[], role: StaffRole) {
     return staff.find((member) => member.role === role)
 }
 
+export function gardenerSeconds(speedLevel: number) {
+    const step = CONFIG.staff.gardener.speedStep ** speedLevel
+    return {
+        walk: CONFIG.staff.gardener.walkSeconds / step,
+        tend: CONFIG.staff.gardener.actionSeconds / step,
+    }
+}
+
 export type StaffStatus = 'none' | 'paused' | 'unpaid' | 'working'
 
 export function staffStatus(member: StaffMember | undefined, staffPaid: boolean): StaffStatus {

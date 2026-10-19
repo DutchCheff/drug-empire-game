@@ -1,9 +1,11 @@
 import { CONFIG } from "./config";
+import { POT_READING_ORDER } from '../art/room/roomLayout'
 import { makeRoller } from '../lib/random'
 import { hireCost, nextPotCost } from './costs'
 import { createDealer, rollCandidates, updateDealers } from './dealers'
 import { arrivalAt } from './dock'
-import { findStaff, gardenerPick, payWages } from "./staff";
+import { findStaff, gardenerPick, gardenerSeconds, payWages } from "./staff";
+import { lampCost } from "./gear";
 import { getStage, growSeconds } from "./plants";
 import { emptyCounts, getStrain, takeGrams, totalCount, nextLocked, seedBundles } from "./strains";
 import { dealerStats, finishTraining, trainingCost, trainingSeconds } from "./training";
@@ -33,11 +35,14 @@ export type GameAction =
     | { type: 'moveStrain'; strain: StrainId; target: StrainId }
     | { type: 'setGardenerMode'; mode: GardenerMode }
     | { type: 'trainDealer'; dealerId: number; skill: SkillId; now: number }
+    | { type: 'upgradeGardener' }
+    | { type: 'buyLamp' }
+    | { type: 'buyFertilizer'; bundleIndex: number }
 
 export function createInitialState(now: number): GameState {
     const pots: Pot[] = []
     for (let index = 0; index < CONFIG.startPots; index++) {
-        pots.push({ id: index + 1, plantedAt: null, strain: 'classic' })
+        pots.push({ id: index + 1, plantedAt: null, strain: 'classic', lamp: false, fertilized: false })
     }
     const roller = makeRoller(now)
     return {
@@ -48,6 +53,8 @@ export function createInitialState(now: number): GameState {
         unlocked: ['classic'],
         gardenerOrder: ['classic'],
         gardenerMode: 'value',
+        lamps: 0,
+        fertilizer: 0,
         pots,
         dealers: [],
         candidates: rollCandidates(roller.roll, []),
@@ -140,6 +147,15 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         case 'trainDealer': {
             return trainDealer(state, action.dealerId, action.skill, action.now)
         }
+        case 'upgradeGardener': {
+            return upgradeGardener(state)
+        }
+        case 'buyLamp': {
+            return buyLamp(state)
+        }
+        case 'buyFertilizer': {
+            return buyFertilizer(state, action.bundleIndex)
+        }
     }
 }
 
@@ -214,12 +230,28 @@ function buyPot(state: GameState): GameState {
     if (state.cash < cost) {
         return state
     }
-    const newPot: Pot = { id: state.pots.length + 1, plantedAt: null, strain: 'classic' }
+    const newPot: Pot = { id: state.pots.length + 1, plantedAt: null, strain: 'classic', lamp: false, fertilized: false }
     return {
         ...state,
         cash: state.cash - cost,
         pots: [...state.pots, newPot],
     }
+}
+
+function buyLamp(state: GameState): GameState {
+    const cost = lampCost(state.lamps)
+    if (state.lamps >= state.pots.length || state.cash < cost) {
+        return state
+    }
+    return { ...state, cash: state.cash - cost, lamps: state.lamps + 1 }
+}
+
+function buyFertilizer(state: GameState, bundleIndex: number): GameState {
+    const bundle = CONFIG.growGear.fertilizer.bundles[bundleIndex]
+    if (bundle === undefined || state.cash < bundle.price) {
+        return state
+    }
+    return { ...state, cash: state.cash - bundle.price, fertilizer: state.fertilizer + bundle.amount }
 }
 
 function hireDealer(state: GameState, candidateIndex: number): GameState {
@@ -356,7 +388,15 @@ function hireStaff(state: GameState, role: StaffRole, now: number): GameState {
     if (findStaff(state.staff, role) !== undefined || state.cash < cost) {
         return state
     }
-    const member: StaffMember = { role, enabled: true, nextActionAt: now, potId: null, targetPotId: null, movedAt: now }
+    const member: StaffMember = {
+        role,
+        enabled: true,
+        nextActionAt: now,
+        potId: null,
+        targetPotId: null,
+        movedAt: now,
+        speedLevel: 0,
+    }
     return {
         ...state,
         cash: state.cash - cost,
@@ -380,6 +420,19 @@ function updateGardener(state: GameState, changes: Partial<StaffMember>): GameSt
     }
 }
 
+function upgradeGardener(state: GameState): GameState {
+    const gardener = findStaff(state.staff, 'gardener')
+    const costs = CONFIG.staff.gardener.speedCosts
+    if (gardener === undefined || gardener.speedLevel >= costs.length) {
+        return state
+    }
+    const cost = costs[gardener.speedLevel]
+    if (state.cash < cost) {
+        return state
+    }
+    return updateGardener({ ...state, cash: state.cash - cost }, { speedLevel: gardener.speedLevel + 1 })
+}
+
 function gardenerStrain(state: GameState) {
     return gardenerPick(state.gardenerMode, state.gardenerOrder, state.seeds)
 }
@@ -398,20 +451,24 @@ function runGardener(state: GameState, now: number): GameState {
     if (gardener === undefined || !gardener.enabled || !state.staffPaid) {
         return state
     }
+    const seconds = gardenerSeconds(gardener.speedLevel)
     const targetPotId = gardener.targetPotId ?? null
     if (targetPotId !== null) {
-        if (now < gardener.movedAt + CONFIG.staff.gardener.walkSeconds * 1000) {
+        if (now < gardener.movedAt + seconds.walk * 1000) {
             return state
         }
         const next = tendPot(state, targetPotId, now)
-        const nextActionAt = next === state ? now : now + CONFIG.staff.gardener.actionSeconds * 1000
+        const nextActionAt = next === state ? now : now + seconds.tend * 1000
         return updateGardener(next, { potId: targetPotId, targetPotId: null, nextActionAt })
     }
     if (now < gardener.nextActionAt) {
         return state
     }
-    const ready = state.pots.find((pot) => getStage(pot, now) === 'ready')
-    const empty = gardenerStrain(state) !== undefined ? state.pots.find((pot) => pot.plantedAt === null) : undefined
+    const pots = [...state.pots].sort(
+        (first, second) => POT_READING_ORDER.indexOf(first.id) - POT_READING_ORDER.indexOf(second.id),
+    )
+    const ready = pots.find((pot) => getStage(pot, now) === 'ready')
+    const empty = gardenerStrain(state) !== undefined ? pots.find((pot) => pot.plantedAt === null) : undefined
     const target = ready ?? empty
     if (target === undefined) {
         return state

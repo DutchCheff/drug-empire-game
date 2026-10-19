@@ -1,6 +1,8 @@
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { SeedPacket } from '../../art/plants/SeedPacket'
-import { gardenerPick } from '../../game/staff'
+import { CONFIG } from '../../game/config'
+import { gardenerPick, gardenerSeconds } from '../../game/staff'
+import { seconds } from '../../lib/format'
 import { getStrain } from '../../game/strains'
 import type { GardenerMode, StrainCounts, StrainId } from '../../game/types'
 
@@ -267,6 +269,146 @@ export function GardenerSettings(props: GardenerSettingsProps) {
                 <span>Fertilizer</span>
                 <SoonBadge />
             </div>
+        </>
+    )
+}
+
+const SOON_UPGRADES = [
+    { name: 'Green thumb', text: 'A bit more yield from every harvest.' },
+    { name: 'Second gardener', text: 'Two of them work in the room' },
+]
+
+const GARDENER_TABS: { id: 'planting' | 'upgrades'; name: string }[] = [
+    { id: 'planting', name: 'Planting' },
+    { id: 'upgrades', name: 'Upgrades' },
+]
+
+function pace(level: number) {
+    const time = gardenerSeconds(level)
+    return `walks ${seconds(time.walk)} · tends ${seconds(time.tend)}`
+}
+
+type GardenerUpgradesProps = {
+    level: number
+    cash: number
+    onUpgrade: () => void
+}
+
+function GardenerUpgrades(props: GardenerUpgradesProps) {
+    const costs = CONFIG.staff.gardener.speedCosts
+    const maxed = props.level >= costs.length
+    const price = costs[props.level]
+    const faster = Math.round((CONFIG.staff.gardener.speedStep - 1) * 100)
+
+    return (
+        <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-3 rounded-xl border border-edge bg-ground p-3.5">
+                <div className="flex items-center justify-between gap-3">
+                    <span className="font-semibold">Movement speed</span>
+                    <span className="font-mono text-xs text-muted">
+                        level {props.level}/{costs.length}
+                    </span>
+                </div>
+                <span className="text-[13px] text-muted">Walks and tends {faster}% faster per level.</span>
+                <ol className="grid grid-cols-3 gap-1.5">
+                    {costs.map((cost, index) => {
+                        const level = index + 1
+                        const owned = level <= props.level
+                        const current = level === props.level
+                        let border = 'border-dashed border-edge'
+                        if (current) {
+                            border = 'border-leaf bg-leaf/10'
+                        } else if (owned) {
+                            border = 'border-edge'
+                        }
+                        return (
+                            <li key={level} className={`flex flex-col items-center gap-0.5 rounded-lg border px-2 py-2 ${border}`}>
+                                <span className={`text-sm font-semibold ${owned ? 'text-leaf' : 'text-paper'}`}>Level {level}</span>
+                                <span className="font-mono text-xs text-muted">
+                                    {owned ? 'owned' : `$${cost.toLocaleString('en-US')}`}
+                                </span>
+                            </li>
+                        )
+                    })}
+                </ol>
+                <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-0.5 font-mono text-xs">
+                    <dt className="text-muted">Now</dt>
+                    <dd className="text-right">{pace(props.level)}</dd>
+                    {!maxed && (
+                        <>
+                            <dt className="text-muted">Next</dt>
+                            <dd className="text-right text-leaf">{pace(props.level + 1)}</dd>
+                        </>
+                    )}
+                </dl>
+                {maxed ? (
+                    <span className="text-sm font-semibold text-leaf">Max level</span>
+                ) : (
+                    <button
+                        type="button"
+                        disabled={props.cash < price}
+                        onClick={props.onUpgrade}
+                        className="h-11 cursor-pointer rounded-lg bg-leaf px-4 font-semibold text-ink disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                        Upgrade to level {props.level + 1} · ${price.toLocaleString('en-US')}
+                    </button>
+                )}
+            </div>
+            {SOON_UPGRADES.map((upgrade) => (
+                <div
+                    key={upgrade.name}
+                    className="flex items-center justify-between gap-3 rounded-xl border border-dashed border-edge p-3.5 opacity-60"
+                >
+                    <span className="flex flex-col">
+                        <span className="font-semibold">{upgrade.name}</span>
+                        <span className="text-[13px] text-muted">{upgrade.text}</span>
+                    </span>
+                    <SoonBadge />
+                </div>
+            ))}
+        </div>
+    )
+}
+
+type GardenerTabsProps = {
+    level: number
+    cash: number
+    onUpgrade: () => void
+    children: ReactNode
+}
+
+export function GardenerTabs(props: GardenerTabsProps) {
+    const [tab, setTab] = useState<'planting' | 'upgrades'>('planting')
+    const costs = CONFIG.staff.gardener.speedCosts
+    const canUpgrade = props.level < costs.length && props.cash >= costs[props.level]
+    const tabClass = 'flex h-10 items-center gap-2 border-b-2 px-3.5 font-semibold'
+
+    return (
+        <>
+            <div role="tablist" className="flex gap-1 border-b border-edge">
+                {GARDENER_TABS.map((item) => (
+                    <button
+                        key={item.id}
+                        type="button"
+                        role="tab"
+                        aria-selected={tab === item.id}
+                        onClick={() => setTab(item.id)}
+                        className={`${tabClass} cursor-pointer ${tab === item.id ? 'border-leaf text-paper' : 'border-transparent text-muted hover:text-paper'}`}
+                    >
+                        {item.name}
+                        {item.id === 'upgrades' && canUpgrade && (
+                            <span className="size-2 rounded-full bg-gold">
+                                <span className="sr-only">upgrade available</span>
+                            </span>
+                        )}
+                    </button>
+                ))}
+            </div>
+            {tab === 'planting' ? (
+                props.children
+            ) : (
+                <GardenerUpgrades level={props.level} cash={props.cash} onUpgrade={props.onUpgrade} />
+            )}
         </>
     )
 }

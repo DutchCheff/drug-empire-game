@@ -70,3 +70,21 @@ export const VAN = {
     mirror: '#5A5E65',
     cargo: '#2A2622',
 }
+
+export const GEAR = {
+    glow: 'rgba(214,110,255,0.2)',
+    glowEdge: 'rgba(214,110,255,0.55)',
+    lampBody: '#26262C',
+    lampEdge: '#3A3A42',
+    ledPink: '#E46BFF',
+    ledWhite: '#FFFFFF',
+    cable: '#2A2C30',
+    bag: '#E4D8BA',
+    bagEdge: '#C4B791',
+    bagTop: '#CFC19E',
+    bagLabel: '#3F8B37',
+    granule: '#E8F0F4',
+    tag: '#ECE6DA',
+    tagEdge: '#BFAE82',
+    ghost: 'rgba(233,185,73,0.85)',
+}

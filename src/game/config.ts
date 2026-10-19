@@ -38,7 +38,14 @@ export const CONFIG = {
   staff: {
     payEverySeconds: 60,
     defaultMinStash: 20,
-    gardener: { hireCost: 150, wagePerMinute: 2, actionSeconds: 2, walkSeconds: 1.2 },
+    gardener: {
+      hireCost: 150,
+      wagePerMinute: 2,
+      actionSeconds: 2,
+      walkSeconds: 1.2,
+      speedCosts: [500, 1500, 4500],
+      speedStep: 1.25,
+    },
     runner: { hireCost: 250, wagePerMinute: 3, actionSeconds: 1},
   },
   dock: {
@@ -47,6 +54,17 @@ export const CONFIG = {
       { name: 'Seed crate', amount: 250, price: 800, seconds: 60 },
       { name: 'Seed pallet', amount: 1000, price: 3000, seconds: 90 },
     ],
+  },
+  growGear : {
+    lamp: { baseCost: 150, costGrowth: 1.5, speedUp: 0.25 },
+    fertilizer: {
+      yieldBonus: 0.4,
+      bundles: [
+        { amount: 1, price: 20 },
+        { amount: 10, price: 160 },
+        { amount: 50, price: 750 },
+      ],
+    },
   },
   training: {
     rankGrowth: 2,

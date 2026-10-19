@@ -18,6 +18,10 @@ export const POT_SLOTS = [
 
 export const SLOT_SIZE = 110
 
+export const POT_READING_ORDER = POT_SLOTS.map((slot, index) => ({ ...slot, potId: index + 1 }))
+    .sort((first, second) => first.y - second.y || first.x - second.x)
+    .map((slot) => slot.potId)
+
 
 export const WAIT_SPOTS = [
     { x: 870, y: 170 },

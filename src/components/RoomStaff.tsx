@@ -4,6 +4,7 @@ import { staffPlacement } from '../art/staff/walking'
 import type { StaffMember } from '../game/types'
 
 const SPRITE_SIZE = 80
+const MOVE_MS = 250
 
 type RoomStaffProps = {
     member: StaffMember
@@ -11,7 +12,7 @@ type RoomStaffProps = {
 }
 
 export function RoomStaff(props: RoomStaffProps) {
-    const placement = staffPlacement(props.member, props.now)
+    const placement = staffPlacement(props.member, props.now + MOVE_MS)
 
     return (
         <div

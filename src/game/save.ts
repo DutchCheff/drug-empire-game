@@ -46,9 +46,15 @@ export function loadGame(now: number): GameState {
             seeds: { ...emptyCounts(), ...seeds },
             stash: { ...emptyCounts(), ...stash },
             gardenerOrder: parsed.gardenerOrder ?? [...loaded.unlocked].reverse(),
-            pots: loaded.pots.map((pot) => ({ ...pot, strain: pot.strain ?? 'classic' })),
+            pots: loaded.pots.map((pot) => ({
+                ...pot,
+                strain: pot.strain ?? 'classic',
+                lamp: pot.lamp ?? false,
+                fertilized: pot.fertilized ?? false,
+            })),
             dealers,
             candidates,
+            staff: loaded.staff.map((member) => ({ ...member, speedLevel: member.speedLevel ?? 0})),
             seed: rolledLooks ? roller.nextSeed() : loaded.seed,
         }
     } catch {
